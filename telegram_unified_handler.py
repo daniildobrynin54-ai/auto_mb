@@ -1,7 +1,8 @@
-"""Объединенный обработчик Telegram бота - команды + мониторинг ответов."""
+"""Объединенный обработчик Telegram бота - команды + мониторинг ответов с inline кнопками."""
 
 import threading
 import time
+import json
 import requests
 from typing import Optional, Callable
 from telegram_users_db import get_users_db
@@ -11,7 +12,7 @@ logger = get_logger("telegram_unified")
 
 
 class TelegramUnifiedHandler:
-    """Единый обработчик для команд и мониторинга ответов."""
+    """Единый обработчик для команд и мониторинга ответов с inline кнопками."""
     
     TRIGGER_KEYWORDS = [
         "смена карты",
@@ -78,9 +79,10 @@ class TelegramUnifiedHandler:
         self,
         chat_id: int,
         text: str,
-        parse_mode: str = "HTML"
+        parse_mode: str = "HTML",
+        reply_markup: Optional[dict] = None
     ) -> bool:
-        """Отправляет личное сообщение пользователю."""
+        """Отправляет сообщение с кнопками."""
         try:
             url = f"{self.api_url}/sendMessage"
             data = {
@@ -88,6 +90,9 @@ class TelegramUnifiedHandler:
                 "text": text,
                 "parse_mode": parse_mode
             }
+            
+            if reply_markup:
+                data["reply_markup"] = json.dumps(reply_markup)
             
             response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
             
@@ -101,6 +106,54 @@ class TelegramUnifiedHandler:
             logger.error(f"Ошибка отправки сообщения: {e}")
             return False
     
+    def answer_callback_query(
+        self,
+        callback_query_id: str,
+        text: str = "",
+        show_alert: bool = False
+    ) -> bool:
+        """Отвечает на callback query (уведомление после нажатия кнопки)."""
+        try:
+            url = f"{self.api_url}/answerCallbackQuery"
+            data = {
+                "callback_query_id": callback_query_id,
+                "text": text,
+                "show_alert": show_alert
+            }
+            
+            response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
+            return response.status_code == 200
+        except Exception as e:
+            logger.error(f"Ошибка ответа на callback: {e}")
+            return False
+    
+    def edit_message(
+        self,
+        chat_id: int,
+        message_id: int,
+        text: str,
+        parse_mode: str = "HTML",
+        reply_markup: Optional[dict] = None
+    ) -> bool:
+        """Редактирует существующее сообщение."""
+        try:
+            url = f"{self.api_url}/editMessageText"
+            data = {
+                "chat_id": chat_id,
+                "message_id": message_id,
+                "text": text,
+                "parse_mode": parse_mode
+            }
+            
+            if reply_markup:
+                data["reply_markup"] = json.dumps(reply_markup)
+            
+            response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
+            return response.status_code == 200
+        except Exception as e:
+            logger.error(f"Ошибка редактирования сообщения: {e}")
+            return False
+    
     def _is_trigger_message(self, text: str) -> bool:
         """Проверяет содержит ли текст триггерные слова."""
         if not text:
@@ -108,6 +161,193 @@ class TelegramUnifiedHandler:
         
         text_lower = text.lower().strip()
         return any(keyword in text_lower for keyword in self.TRIGGER_KEYWORDS)
+    
+    def show_accounts_list(self, chat_id: int) -> None:
+        """
+        🔧 НОВОЕ: Показывает список аккаунтов с кнопками.
+        """
+        accounts = self.users_db.get_user_accounts(chat_id)
+        
+        if not accounts:
+            self.send_message(
+                chat_id,
+                "❌ <b>У вас нет привязанных аккаунтов</b>\n\n"
+                "Отправьте мне ссылку на ваш профиль MangaBuff для добавления.\n\n"
+                "<i>Например: https://mangabuff.ru/users/826513</i>"
+            )
+            return
+        
+        # Создаем кнопки для каждого аккаунта
+        keyboard = {
+            "inline_keyboard": []
+        }
+        
+        for acc in accounts:
+            username = acc['username']
+            user_id = acc['user_id']
+            notif_type = acc['notification_type']
+            
+            # Эмодзи текущего типа
+            emoji = "📬" if notif_type == 'dm' else "🏷"
+            
+            # Кнопка для каждого аккаунта
+            keyboard["inline_keyboard"].append([{
+                "text": f"{emoji} {username}",
+                "callback_data": f"account:{user_id}"
+            }])
+        
+        # Заголовок
+        text = "<b>📝 Ваши аккаунты MangaBuff:</b>\n\n"
+        text += "Нажмите на аккаунт для настройки уведомлений:"
+        
+        self.send_message(chat_id, text, reply_markup=keyboard)
+        logger.info(f"Показан список из {len(accounts)} аккаунтов для {chat_id}")
+    
+    def show_notification_settings(
+        self,
+        chat_id: int,
+        message_id: int,
+        user_id: str
+    ) -> None:
+        """
+        🔧 НОВОЕ: Показывает настройки уведомлений для аккаунта с кнопками.
+        """
+        accounts = self.users_db.get_user_accounts(chat_id)
+        
+        # Находим аккаунт
+        account = None
+        for acc in accounts:
+            if acc['user_id'] == user_id:
+                account = acc
+                break
+        
+        if not account:
+            self.answer_callback_query(
+                message_id,
+                "❌ Аккаунт не найден",
+                show_alert=True
+            )
+            return
+        
+        username = account['username']
+        current_type = account['notification_type']
+        
+        # Текущий способ
+        current_text = "📬 Личные сообщения" if current_type == 'dm' else "🏷 Тег во вкладе"
+        
+        # Создаем кнопки выбора
+        keyboard = {
+            "inline_keyboard": [
+                [
+                    {
+                        "text": "📬 ЛС" + (" ✅" if current_type == 'dm' else ""),
+                        "callback_data": f"notify:{user_id}:dm"
+                    },
+                    {
+                        "text": "🏷 Тег" + (" ✅" if current_type == 'tag' else ""),
+                        "callback_data": f"notify:{user_id}:tag"
+                    }
+                ],
+                [
+                    {
+                        "text": "◀️ Назад к списку",
+                        "callback_data": "back_to_list"
+                    }
+                ]
+            ]
+        }
+        
+        text = (
+            f"<b>⚙️ Настройки для {username}</b>\n\n"
+            f"<b>Текущий способ:</b> {current_text}\n\n"
+            f"Выберите способ уведомлений:"
+        )
+        
+        self.edit_message(chat_id, message_id, text, reply_markup=keyboard)
+        logger.info(f"Показаны настройки для {username} ({user_id})")
+    
+    def set_notification_type_via_button(
+        self,
+        chat_id: int,
+        message_id: int,
+        callback_query_id: str,
+        user_id: str,
+        notification_type: str
+    ) -> None:
+        """
+        🔧 НОВОЕ: Устанавливает тип уведомлений через кнопку.
+        """
+        logger.info(f"🔧 Изменение типа через кнопку: TG {chat_id} -> MB {user_id} -> {notification_type}")
+        
+        success, message = self.users_db.set_notification_type(
+            chat_id,
+            user_id,
+            notification_type
+        )
+        
+        if success:
+            # Показываем уведомление
+            notif_text = "личные сообщения" if notification_type == 'dm' else "Тег во вкладе"
+            self.answer_callback_query(
+                callback_query_id,
+                f"✅ Установлено: {notif_text}",
+                show_alert=False
+            )
+            
+            # Обновляем сообщение с новыми кнопками
+            self.show_notification_settings(chat_id, message_id, user_id)
+            
+            logger.info(f"✅ Тип уведомлений изменен: {user_id} -> {notification_type}")
+        else:
+            # Показываем ошибку
+            self.answer_callback_query(
+                callback_query_id,
+                f"❌ Ошибка: {message}",
+                show_alert=True
+            )
+            logger.error(f"❌ Не удалось изменить тип: {message}")
+    
+    def process_callback_query(self, callback_query: dict) -> None:
+        """
+        🔧 НОВОЕ: Обрабатывает нажатия на inline кнопки.
+        """
+        callback_id = callback_query.get('id')
+        callback_data = callback_query.get('data', '')
+        
+        from_user = callback_query.get('from', {})
+        chat_id = from_user.get('id')
+        
+        message = callback_query.get('message', {})
+        message_id = message.get('message_id')
+        
+        logger.info(f"📩 Callback от {chat_id}: {callback_data}")
+        
+        # === КНОПКА: Назад к списку ===
+        if callback_data == "back_to_list":
+            self.answer_callback_query(callback_id)
+            # Удаляем старое сообщение и показываем новый список
+            self.show_accounts_list(chat_id)
+        
+        # === КНОПКА: Показать настройки аккаунта ===
+        elif callback_data.startswith("account:"):
+            user_id = callback_data.split(":", 1)[1]
+            self.answer_callback_query(callback_id)
+            self.show_notification_settings(chat_id, message_id, user_id)
+        
+        # === КНОПКА: Изменить тип уведомлений ===
+        elif callback_data.startswith("notify:"):
+            parts = callback_data.split(":")
+            if len(parts) == 3:
+                user_id = parts[1]
+                notification_type = parts[2]
+                
+                self.set_notification_type_via_button(
+                    chat_id,
+                    message_id,
+                    callback_id,
+                    user_id,
+                    notification_type
+                )
     
     def process_command(
         self,
@@ -134,9 +374,8 @@ class TelegramUnifiedHandler:
                 "• <code>https://mangabuff.ru/users/123456</code>\n"
                 "• Или просто ID: <code>123456</code>\n\n"
                 "<b>📋 Команды:</b>\n"
-                "/add - Добавить аккаунт\n"
                 "/list - Мои аккаунты\n"
-                "/notify - Настройки уведомлений\n"
+                "/add - Добавить аккаунт\n"
                 "/remove - Удалить аккаунт\n"
                 "/stats - Статистика\n"
                 "/help - Помощь"
@@ -151,96 +390,12 @@ class TelegramUnifiedHandler:
                 "Отправьте мне ссылку на ваш профиль MangaBuff:\n"
                 "• <code>https://mangabuff.ru/users/123456</code>\n"
                 "• Или просто ID: <code>123456</code>\n\n"
-                "<i>После добавления вы сможете настроить тип уведомлений</i>"
+                "<i>После добавления используйте /list для настройки уведомлений</i>"
             )
         
         # === КОМАНДА /list ===
         elif text.startswith('/list'):
-            info = self.users_db.get_user_info(chat_id)
-            if info:
-                self.send_message(chat_id, info)
-            else:
-                self.send_message(
-                    chat_id,
-                    "❌ <b>У вас нет привязанных аккаунтов</b>\n\n"
-                    "Отправьте мне ссылку на ваш профиль MangaBuff для добавления.\n\n"
-                    "<i>Например: https://mangabuff.ru/users/826513</i>"
-                )
-        
-        # === КОМАНДА /notify ===
-        elif text.startswith('/notify'):
-            accounts = self.users_db.get_user_accounts(chat_id)
-            
-            if not accounts:
-                self.send_message(
-                    chat_id,
-                    "❌ <b>У вас нет привязанных аккаунтов</b>\n\n"
-                    "Сначала добавьте аккаунт с помощью /add"
-                )
-                return
-            
-            # Показываем инструкцию
-            lines = [
-                "<b>⚙️ Настройка уведомлений</b>\n",
-                "Выберите тип уведомлений для каждого аккаунта:\n"
-            ]
-            
-            for acc in accounts:
-                current = "📬 ЛС" if acc['notification_type'] == 'dm' else "🏷 Теги"
-                lines.append(
-                    f"• <b>{acc['username']}</b> (ID: {acc['user_id']})\n"
-                    f"  Текущий тип: {current}"
-                )
-            
-            lines.append(
-                "\n<b>Изменить настройки:</b>\n"
-                "<code>/notify_dm USER_ID</code> - личные сообщения\n"
-                "<code>/notify_tag USER_ID</code> - теги во вкладе\n\n"
-                "<b>Пример:</b>\n"
-                f"<code>/notify_dm {accounts[0]['user_id']}</code>"
-            )
-            
-            self.send_message(chat_id, "\n".join(lines))
-        
-        # === КОМАНДА /notify_dm USER_ID ===
-        elif text.startswith('/notify_dm '):
-            parts = text.split()
-            if len(parts) < 2:
-                self.send_message(
-                    chat_id,
-                    "❌ Укажите USER_ID\n\n"
-                    "<i>Пример: /notify_dm 123456</i>"
-                )
-                return
-            
-            user_id = parts[1].strip()
-            success, message = self.users_db.set_notification_type(
-                chat_id,
-                user_id,
-                'dm'
-            )
-            self.send_message(chat_id, message)
-            logger.info(f"{'✅' if success else '❌'} Изменение типа: {chat_id} -> dm")
-        
-        # === КОМАНДА /notify_tag USER_ID ===
-        elif text.startswith('/notify_tag '):
-            parts = text.split()
-            if len(parts) < 2:
-                self.send_message(
-                    chat_id,
-                    "❌ Укажите USER_ID\n\n"
-                    "<i>Пример: /notify_tag 123456</i>"
-                )
-                return
-            
-            user_id = parts[1].strip()
-            success, message = self.users_db.set_notification_type(
-                chat_id,
-                user_id,
-                'tag'
-            )
-            self.send_message(chat_id, message)
-            logger.info(f"{'✅' if success else '❌'} Изменение типа: {chat_id} -> tag")
+            self.show_accounts_list(chat_id)
         
         # === КОМАНДА /remove ===
         elif text.startswith('/remove'):
@@ -284,16 +439,15 @@ class TelegramUnifiedHandler:
                 "бот отправит уведомление.\n\n"
                 "<b>📬 Типы уведомлений:</b>\n"
                 "• <b>Личные сообщения (ЛС)</b> - бот пишет вам в личку\n"
-                "• <b>Теги во вкладе</b> - бот тегает вас в общем сообщении\n\n"
+                "• <b>Тег во вкладе</b> - бот тегает вас в общем сообщении\n\n"
                 "<b>📝 Как добавить аккаунт?</b>\n"
                 "1. Зайдите на свой профиль на mangabuff.ru\n"
                 "2. Скопируйте ссылку или ID\n"
                 "3. Отправьте боту\n\n"
                 "<b>📋 Команды:</b>\n"
                 "/start - Приветствие\n"
+                "/list - Мои аккаунты (с кнопками настроек)\n"
                 "/add - Добавить аккаунт\n"
-                "/list - Мои аккаунты\n"
-                "/notify - Настройки уведомлений\n"
                 "/remove - Удалить аккаунт\n"
                 "/stats - Статистика"
             )
@@ -325,8 +479,7 @@ class TelegramUnifiedHandler:
                 # Добавляем подсказку про настройки
                 message += (
                     "\n\n<b>⚙️ Настройки уведомлений:</b>\n"
-                    "По умолчанию: 📬 Личные сообщения\n"
-                    "Изменить: /notify"
+                    "Используйте /list для выбора способа уведомлений"
                 )
             
             self.send_message(chat_id, message)
@@ -378,7 +531,7 @@ class TelegramUnifiedHandler:
             params = {
                 "offset": self.last_update_id + 1,
                 "timeout": 30,
-                "allowed_updates": ["message"]
+                "allowed_updates": ["message", "callback_query"]  # 🔧 ДОБАВЛЕНО: callback_query
             }
             
             response = requests.get(
@@ -413,6 +566,13 @@ class TelegramUnifiedHandler:
             try:
                 self.last_update_id = update.get('update_id', 0)
                 
+                # === ОБРАБОТКА CALLBACK QUERY (нажатия на кнопки) ===
+                callback_query = update.get('callback_query')
+                if callback_query:
+                    self.process_callback_query(callback_query)
+                    continue
+                
+                # === ОБРАБОТКА ОБЫЧНЫХ СООБЩЕНИЙ ===
                 message = update.get('message')
                 if not message:
                     continue

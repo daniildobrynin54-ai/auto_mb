@@ -249,7 +249,7 @@ class TelegramNotifier:
         if tags:
             logger.info(f"✅ Добавлено {len(tags)} тегов")
         else:
-            logger.info("ℹ️  Теги не добавлены (все выбрали ЛС или нет привязок)")
+            logger.info("ℹ️  Тег не добавлен (все выбрали ЛС или нет привязок)")
         
         message = (
             f"<b>🎴 Карта сменилась</b>\n"
@@ -349,7 +349,7 @@ class TelegramNotifier:
                     else:
                         tag_users.append(member)
             
-            logger.info(f"📊 Распределение: ЛС={len(dm_users)}, Теги={len(tag_users)}")
+            logger.info(f"📊 Распределение: ЛС={len(dm_users)}, Тег={len(tag_users)}")
             
             dm_sent = 0
             for user in dm_users:

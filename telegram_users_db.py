@@ -96,7 +96,7 @@ class TelegramUsersDB:
             new_data[telegram_id]['mangabuff_accounts'].append({
                 'user_id': mangabuff_id,
                 'username': f'User{mangabuff_id}',  # Временное имя
-                'notification_type': 'tag'  # По умолчанию теги
+                'notification_type': 'tag'  # По умолчанию тег
             })
         
         logger.info(f"Миграция завершена: {len(new_data)} пользователей")
@@ -179,7 +179,7 @@ class TelegramUsersDB:
                     return True, (
                         f"✅ Аккаунт обновлен!\n"
                         f"MangaBuff: {acc['username']} (ID: {user_id})\n"
-                        f"Уведомления: {'Личные сообщения' if notification_type == 'dm' else 'Теги во вкладе'}"
+                        f"Уведомления: {'Личные сообщения' if notification_type == 'dm' else 'Тег во вкладе'}"
                     )
                 return False, "❌ Ошибка сохранения"
         
@@ -198,7 +198,7 @@ class TelegramUsersDB:
             return True, (
                 f"✅ Аккаунт добавлен!\n"
                 f"MangaBuff: {new_account['username']} (ID: {user_id})\n"
-                f"Уведомления: {'Личные сообщения' if notification_type == 'dm' else 'Теги во вкладе'}\n"
+                f"Уведомления: {'Личные сообщения' if notification_type == 'dm' else 'Тег во вкладе'}\n"
                 f"\nВсего привязано аккаунтов: {count}"
             )
         
@@ -299,7 +299,7 @@ class TelegramUsersDB:
         lines = ["📝 <b>Ваши аккаунты MangaBuff:</b>\n"]
         
         for i, acc in enumerate(accounts, 1):
-            notif_type = "📬 ЛС" if acc['notification_type'] == 'dm' else "🏷 Теги"
+            notif_type = "📬 ЛС" if acc['notification_type'] == 'dm' else "🏷 Тег"
             lines.append(
                 f"{i}. <b>{acc['username']}</b>\n"
                 f"   ID: <code>{acc['user_id']}</code>\n"
@@ -326,7 +326,7 @@ class TelegramUsersDB:
         notification_type: str
     ) -> Tuple[bool, str]:
         """
-        Изменяет тип уведомлений для аккаунта.
+        🔧 ИСПРАВЛЕНО: Изменяет тип уведомлений напрямую в self.users.
         
         Args:
             telegram_id: Telegram ID
@@ -337,20 +337,43 @@ class TelegramUsersDB:
             (успех, сообщение)
         """
         if notification_type not in ['dm', 'tag']:
+            logger.warning(f"Неверный тип: {notification_type}")
             return False, "❌ Неверный тип уведомлений (dm/tag)"
         
-        accounts = self.get_user_accounts(telegram_id)
+        telegram_id_str = str(telegram_id)
+        
+        logger.debug(f"🔍 Поиск аккаунта: TG {telegram_id_str} -> MB {mangabuff_user_id}")
+        
+        # 🔧 КРИТИЧНО: Работаем напрямую с self.users, а не с копией!
+        if telegram_id_str not in self.users:
+            logger.warning(f"Telegram ID {telegram_id_str} не найден в базе")
+            return False, "❌ У вас нет привязанных аккаунтов"
+        
+        # Получаем прямую ссылку на список аккаунтов
+        accounts = self.users[telegram_id_str]['mangabuff_accounts']
+        
+        logger.debug(f"Найдено аккаунтов: {len(accounts)}")
         
         for acc in accounts:
+            logger.debug(f"Проверка аккаунта: {acc['user_id']} (тип: {type(acc['user_id'])})")
+            
+            # 🔧 ИСПРАВЛЕНО: Сравниваем строки
             if acc['user_id'] == mangabuff_user_id:
+                logger.info(f"✅ Аккаунт найден! Изменяем {acc['notification_type']} -> {notification_type}")
+                
+                # Изменяем напрямую в self.users
                 acc['notification_type'] = notification_type
                 
+                # Сохраняем базу
                 if self._save_db():
-                    notif_text = "личные сообщения" if notification_type == 'dm' else "теги во вкладе"
+                    notif_text = "личные сообщения" if notification_type == 'dm' else "тег во вкладе"
+                    logger.info(f"✅ База данных сохранена")
                     return True, f"✅ Для {acc['username']}: {notif_text}"
-                
-                return False, "❌ Ошибка сохранения"
+                else:
+                    logger.error(f"❌ Ошибка сохранения базы данных")
+                    return False, "❌ Ошибка сохранения"
         
+        logger.warning(f"Аккаунт {mangabuff_user_id} не найден среди {len(accounts)} аккаунтов")
         return False, f"❌ Аккаунт с ID {mangabuff_user_id} не найден"
 
 
