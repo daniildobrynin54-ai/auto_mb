@@ -3,16 +3,16 @@
     "telegram_username": null,
     "mangabuff_accounts": [
       {
-        "user_id": "1028092",
-        "username": "ТаКтоЛюбила",
-        "notification_type": "dm",
-        "last_nickname_update": "2026-01-19T14:06:34.822695"
-      },
-      {
         "user_id": "309607",
         "username": "Замок Сефира",
         "notification_type": "dm",
         "last_nickname_update": "2026-01-19T14:06:35.468055"
+      },
+      {
+        "user_id": "1028092",
+        "username": "ТаКтоЛюбила",
+        "last_nickname_update": "2026-01-19T14:42:47.270141",
+        "notification_type": "dm"
       }
     ],
     "last_username_update": "2025-01-19T14:03:07.403139"

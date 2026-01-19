@@ -53,7 +53,7 @@ from utils import (
 
 class MangaBuffApp:
     """
-    Главное приложение MangaBuff v2.5 - исправлен режим ожидания.
+    Главное приложение MangaBuff v2.6 - добавлена валидация клуба.
     """
     
     MAX_FAILED_CYCLES = 3
@@ -83,33 +83,6 @@ class MangaBuffApp:
             auto_update_ip=True
         )
         
-        bot_token = self.args.telegram_token or TELEGRAM_BOT_TOKEN
-        chat_id_str = self.args.telegram_chat_id or TELEGRAM_CHAT_ID
-        thread_id_val = self.args.telegram_thread_id or TELEGRAM_THREAD_ID
-        
-        def on_replace_triggered():
-            self.replace_requested = True
-            logger.info("🔔 Установлен флаг replace_requested через Telegram")
-        
-        if bot_token and chat_id_str and (self.args.telegram_enabled if hasattr(self.args, 'telegram_enabled') else TELEGRAM_ENABLED):
-            self.telegram_unified_handler = create_unified_handler(
-                bot_token=bot_token,
-                chat_id=chat_id_str,
-                thread_id=thread_id_val,
-                on_replace_triggered=on_replace_triggered,
-                proxy_manager=self.proxy_manager
-            )
-            print("🤖 Telegram бот запущен (команды + мониторинг)\n")
-        
-        self.telegram_notifier = create_telegram_notifier(
-            bot_token=bot_token,
-            chat_id=chat_id_str,
-            thread_id=thread_id_val,
-            enabled=self.args.telegram_enabled if hasattr(self.args, 'telegram_enabled') else TELEGRAM_ENABLED,
-            proxy_manager=self.proxy_manager,
-            reply_monitor=self.telegram_unified_handler
-        )
-        
         print(f"⏱️  Rate Limiting: {self.rate_limiter.max_requests} req/min")
         
         print("\n🔐 Вход в аккаунт...")
@@ -130,6 +103,36 @@ class MangaBuffApp:
         users_db = get_users_db()
         users_db.set_session(self.session)
         logger.info("✅ Session установлена в БД для парсинга nicknames")
+        
+        # 🔧 ПЕРЕМЕЩЕНО: Инициализируем Telegram ПОСЛЕ авторизации
+        bot_token = self.args.telegram_token or TELEGRAM_BOT_TOKEN
+        chat_id_str = self.args.telegram_chat_id or TELEGRAM_CHAT_ID
+        thread_id_val = self.args.telegram_thread_id or TELEGRAM_THREAD_ID
+        
+        def on_replace_triggered():
+            self.replace_requested = True
+            logger.info("🔔 Установлен флаг replace_requested через Telegram")
+        
+        if bot_token and chat_id_str and (self.args.telegram_enabled if hasattr(self.args, 'telegram_enabled') else TELEGRAM_ENABLED):
+            self.telegram_unified_handler = create_unified_handler(
+                bot_token=bot_token,
+                chat_id=chat_id_str,
+                thread_id=thread_id_val,
+                on_replace_triggered=on_replace_triggered,
+                proxy_manager=self.proxy_manager,
+                boost_url=self.args.boost_url,  # 🔧 НОВОЕ: Передаем boost_url
+                session=self.session  # 🔧 НОВОЕ: Передаем session
+            )
+            print("🤖 Telegram бот запущен (команды + мониторинг + валидация)\n")
+        
+        self.telegram_notifier = create_telegram_notifier(
+            bot_token=bot_token,
+            chat_id=chat_id_str,
+            thread_id=thread_id_val,
+            enabled=self.args.telegram_enabled if hasattr(self.args, 'telegram_enabled') else TELEGRAM_ENABLED,
+            proxy_manager=self.proxy_manager,
+            reply_monitor=self.telegram_unified_handler
+        )
 
         return True
     
@@ -693,7 +696,7 @@ class MangaBuffApp:
 
 def create_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="MangaBuff v2.5 - исправлен режим ожидания"
+        description="MangaBuff v2.6 - добавлена валидация клуба"
     )
     
     parser.add_argument("--email", required=True, help="Email")
@@ -728,7 +731,7 @@ def main():
     )
     
     main_logger.section("ЗАПУСК ПРИЛОЖЕНИЯ MANGABUFF", char="=")
-    main_logger.info("Версия: 2.5 (исправлен режим ожидания)")
+    main_logger.info("Версия: 2.6 (добавлена валидация клуба)")
     main_logger.info(f"Время запуска: {time.strftime('%Y-%m-%d %H:%M:%S')}")
     
     parser = create_argument_parser()

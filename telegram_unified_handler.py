@@ -1,4 +1,4 @@
-"""Объединенный обработчик Telegram бота с автообновлением."""
+"""Объединенный обработчик Telegram бота с автообновлением и валидацией."""
 
 import threading
 import time
@@ -6,6 +6,7 @@ import json
 import requests
 from typing import Optional, Callable
 from telegram_users_db import get_users_db
+from telegram_club_validator import create_club_validator
 from logger import get_logger
 
 logger = get_logger("telegram_unified")
@@ -29,7 +30,9 @@ class TelegramUnifiedHandler:
         chat_id: str,
         thread_id: Optional[int],
         on_replace_triggered: Optional[Callable] = None,
-        proxy_manager=None
+        proxy_manager=None,
+        boost_url: Optional[str] = None,
+        session=None
     ):
         self.bot_token = bot_token
         self.chat_id = chat_id
@@ -41,6 +44,23 @@ class TelegramUnifiedHandler:
         self.thread = None
         self.users_db = get_users_db()
         self.bot_message_ids = set()
+        
+        # 🔧 НОВОЕ: Валидатор клуба
+        self.validator = None
+        if boost_url and session:
+            self.validator = create_club_validator(
+                session=session,
+                bot_token=bot_token,
+                boost_url=boost_url,
+                telegram_chat_id=chat_id,
+                proxy_manager=proxy_manager
+            )
+            if self.validator:
+                logger.info("✅ Валидатор клуба инициализирован")
+            else:
+                logger.warning("⚠️ Не удалось создать валидатор клуба")
+        else:
+            logger.warning("⚠️ Валидатор клуба отключен (нет boost_url или session)")
         
         # Прокси
         self.proxies = None
@@ -436,6 +456,36 @@ class TelegramUnifiedHandler:
         
         # === РЕГИСТРАЦИЯ ПО URL ===
         elif not text.startswith('/'):
+            # 🔧 НОВОЕ: Проверка валидации ПЕРЕД регистрацией
+            if self.validator:
+                # Извлекаем user_id из ссылки
+                user_id = self.users_db.extract_id_from_url(text)
+                
+                if not user_id:
+                    self.send_message(
+                        chat_id,
+                        "❌ <b>Неверный формат ссылки</b>\n\n"
+                        "Отправьте ссылку на профиль:\n"
+                        "• <code>https://mangabuff.ru/users/123456</code>\n"
+                        "• Или просто ID: <code>123456</code>"
+                    )
+                    return
+                
+                # Выполняем валидацию
+                logger.info(f"🔐 Проверка условий регистрации для {user_id}...")
+                
+                validation_ok, validation_message = self.validator.validate_user_registration(
+                    telegram_id=chat_id,
+                    mangabuff_user_id=user_id
+                )
+                
+                if not validation_ok:
+                    logger.warning(f"❌ Валидация не пройдена: {telegram_username}")
+                    self.send_message(chat_id, validation_message)
+                    return
+                
+                logger.info(f"✅ Валидация пройдена для {user_id}")
+            
             # 🔧 ОБНОВЛЕНО: register_account теперь автоматически парсит nickname
             success, message = self.users_db.register_account(
                 chat_id,
@@ -576,6 +626,9 @@ class TelegramUnifiedHandler:
         logger.info(f"👁️  Мониторинг триггеров: {', '.join(self.TRIGGER_KEYWORDS)}")
         logger.info("📱 Отправьте /start боту для регистрации")
         
+        if self.validator:
+            logger.info(f"🔐 Валидация клуба: {self.validator.required_club_slug}")
+        
         consecutive_errors = 0
         max_errors = 5
         
@@ -627,7 +680,9 @@ def create_unified_handler(
     chat_id: str,
     thread_id: Optional[int],
     on_replace_triggered: Optional[Callable] = None,
-    proxy_manager=None
+    proxy_manager=None,
+    boost_url: Optional[str] = None,
+    session=None
 ) -> TelegramUnifiedHandler:
     """Создает и запускает unified handler."""
     global _unified_handler
@@ -640,7 +695,9 @@ def create_unified_handler(
         chat_id,
         thread_id,
         on_replace_triggered,
-        proxy_manager
+        proxy_manager,
+        boost_url,
+        session
     )
     
     _unified_handler.start()
