@@ -1,4 +1,4 @@
-"""Объединенный обработчик Telegram бота с автообновлением и валидацией."""
+"""Объединенный обработчик Telegram бота v2 - с профилями и улучшенной регистрацией."""
 
 import threading
 import time
@@ -7,6 +7,7 @@ import requests
 from typing import Optional, Callable
 from telegram_users_db import get_users_db
 from telegram_club_validator import create_club_validator
+from google_sheets_parser import get_sheets_parser
 from logger import get_logger
 
 logger = get_logger("telegram_unified")
@@ -44,8 +45,12 @@ class TelegramUnifiedHandler:
         self.thread = None
         self.users_db = get_users_db()
         self.bot_message_ids = set()
+        self.sheets_parser = get_sheets_parser(proxy_manager)
         
-        # 🔧 НОВОЕ: Валидатор клуба
+        # 🔧 НОВОЕ: Временные состояния пользователей
+        self.user_states = {}  # {chat_id: {'state': 'waiting_add', 'url': '...'}}
+        
+        # Валидатор клуба
         self.validator = None
         if boost_url and session:
             self.validator = create_club_validator(
@@ -57,16 +62,11 @@ class TelegramUnifiedHandler:
             )
             if self.validator:
                 logger.info("✅ Валидатор клуба инициализирован")
-            else:
-                logger.warning("⚠️ Не удалось создать валидатор клуба")
-        else:
-            logger.warning("⚠️ Валидатор клуба отключен (нет boost_url или session)")
         
         # Прокси
         self.proxies = None
         if proxy_manager and proxy_manager.is_enabled():
             self.proxies = proxy_manager.get_proxies()
-            logger.info(f"Telegram unified handler использует прокси")
         
         self._test_connection()
     
@@ -182,17 +182,17 @@ class TelegramUnifiedHandler:
         text_lower = text.lower().strip()
         return any(keyword in text_lower for keyword in self.TRIGGER_KEYWORDS)
     
-    def show_accounts_list(self, chat_id: int) -> None:
-        """Показывает список аккаунтов с кнопками."""
-        # 🔧 ОБНОВЛЕНО: get_user_accounts теперь автоматически обновляет nicknames
+    def show_notifications_list(self, chat_id: int) -> None:
+        """🔧 ПЕРЕИМЕНОВАНО: /list → /notifications."""
         accounts = self.users_db.get_user_accounts(chat_id)
         
         if not accounts:
             self.send_message(
                 chat_id,
                 "❌ <b>У вас нет привязанных аккаунтов</b>\n\n"
-                "Отправьте мне ссылку на ваш профиль MangaBuff для добавления.\n\n"
-                "<i>Например: https://mangabuff.ru/users/826513</i>"
+                "Используйте /add для добавления аккаунта.\n\n"
+                "<i>Например:</i>\n"
+                "<code>/add https://mangabuff.ru/users/826513</code>"
             )
             return
         
@@ -201,7 +201,7 @@ class TelegramUnifiedHandler:
         }
         
         for acc in accounts:
-            username = acc['username']  # 🔧 Теперь это реальный nickname
+            username = acc['username']
             user_id = acc['user_id']
             notif_type = acc['notification_type']
             
@@ -209,14 +209,66 @@ class TelegramUnifiedHandler:
             
             keyboard["inline_keyboard"].append([{
                 "text": f"{emoji} {username}",
-                "callback_data": f"account:{user_id}"
+                "callback_data": f"notif:{user_id}"
             }])
         
-        text = "<b>📝 Ваши аккаунты MangaBuff:</b>\n\n"
-        text += "Нажмите на аккаунт для настройки уведомлений:"
+        text = "<b>⚙️ Настройки уведомлений:</b>\n\n"
+        text += "Нажмите на аккаунт для выбора способа уведомлений:"
         
         self.send_message(chat_id, text, reply_markup=keyboard)
         logger.info(f"Показан список из {len(accounts)} аккаунтов для {chat_id}")
+    
+    def show_profile_list(self, chat_id: int) -> None:
+        """🔧 НОВОЕ: Показывает список аккаунтов для просмотра профиля."""
+        accounts = self.users_db.get_user_accounts(chat_id)
+        
+        if not accounts:
+            self.send_message(
+                chat_id,
+                "❌ <b>У вас нет привязанных аккаунтов</b>\n\n"
+                "Используйте /add для добавления аккаунта."
+            )
+            return
+        
+        keyboard = {
+            "inline_keyboard": []
+        }
+        
+        for acc in accounts:
+            username = acc['username']
+            user_id = acc['user_id']
+            
+            keyboard["inline_keyboard"].append([{
+                "text": f"👤 {username}",
+                "callback_data": f"profile:{user_id}"
+            }])
+        
+        text = "<b>📋 Профиль какого своего аккаунта вы хотите посмотреть:</b>"
+        
+        self.send_message(chat_id, text, reply_markup=keyboard)
+        logger.info(f"Показан список профилей для {chat_id}")
+    
+    def show_profile(self, chat_id: int, callback_query_id: str, user_id: str) -> None:
+        """🔧 НОВОЕ: Показывает профиль из Google Sheets."""
+        logger.info(f"📊 Загрузка профиля {user_id} для {chat_id}")
+        
+        # Загружаем профиль из таблицы
+        profile = self.sheets_parser.parse_profile(user_id)
+        
+        if not profile:
+            self.answer_callback_query(
+                callback_query_id,
+                "❌ Профиль не найден в таблице",
+                show_alert=True
+            )
+            return
+        
+        # Форматируем сообщение
+        message = self.sheets_parser.format_profile_message(profile)
+        
+        self.answer_callback_query(callback_query_id)
+        self.send_message(chat_id, message)
+        logger.info(f"✅ Профиль {user_id} отправлен")
     
     def show_notification_settings(
         self,
@@ -241,7 +293,7 @@ class TelegramUnifiedHandler:
             )
             return
         
-        username = account['username']  # 🔧 Теперь это реальный nickname
+        username = account['username']
         current_type = account['notification_type']
         
         current_text = "📬 Личные сообщения" if current_type == 'dm' else "🏷 Тег во вкладе"
@@ -251,17 +303,17 @@ class TelegramUnifiedHandler:
                 [
                     {
                         "text": "📬 ЛС" + (" ✅" if current_type == 'dm' else ""),
-                        "callback_data": f"notify:{user_id}:dm"
+                        "callback_data": f"set_notif:{user_id}:dm"
                     },
                     {
                         "text": "🏷 Тег" + (" ✅" if current_type == 'tag' else ""),
-                        "callback_data": f"notify:{user_id}:tag"
+                        "callback_data": f"set_notif:{user_id}:tag"
                     }
                 ],
                 [
                     {
                         "text": "◀️ Назад к списку",
-                        "callback_data": "back_to_list"
+                        "callback_data": "back_to_notif"
                     }
                 ]
             ]
@@ -312,6 +364,115 @@ class TelegramUnifiedHandler:
             )
             logger.error(f"❌ Не удалось изменить тип: {message}")
     
+    def ask_link_action(self, chat_id: int, url: str) -> None:
+        """🔧 НОВОЕ: Спрашивает что делать с ссылкой."""
+        keyboard = {
+            "inline_keyboard": [
+                [
+                    {
+                        "text": "➕ Привязать аккаунт",
+                        "callback_data": f"link_add:{url}"
+                    }
+                ],
+                [
+                    {
+                        "text": "👁️ Посмотреть профиль",
+                        "callback_data": f"link_view:{url}"
+                    }
+                ]
+            ]
+        }
+        
+        text = (
+            "<b>🔗 Что вы хотите сделать?</b>\n\n"
+            f"Ссылка: <code>{url}</code>"
+        )
+        
+        self.send_message(chat_id, text, reply_markup=keyboard)
+        logger.info(f"Запрос действия для ссылки: {url}")
+    
+    def process_link_add(
+        self,
+        chat_id: int,
+        telegram_username: Optional[str],
+        callback_query_id: str,
+        url: str
+    ) -> None:
+        """🔧 НОВОЕ: Обрабатывает привязку через кнопку."""
+        self.answer_callback_query(callback_query_id)
+        
+        # Валидация
+        if self.validator:
+            user_id = self.users_db.extract_id_from_url(url)
+            
+            if not user_id:
+                self.send_message(
+                    chat_id,
+                    "❌ Неверный формат ссылки"
+                )
+                return
+            
+            logger.info(f"🔐 Проверка условий регистрации для {user_id}...")
+            
+            validation_ok, validation_message = self.validator.validate_user_registration(
+                telegram_id=chat_id,
+                mangabuff_user_id=user_id
+            )
+            
+            if not validation_ok:
+                logger.warning(f"❌ Валидация не пройдена")
+                self.send_message(chat_id, validation_message)
+                return
+            
+            logger.info(f"✅ Валидация пройдена для {user_id}")
+        
+        # Регистрация
+        success, message = self.users_db.register_account(
+            chat_id,
+            telegram_username,
+            url,
+            mangabuff_username=None,
+            notification_type='dm'
+        )
+        
+        if success:
+            message += (
+                "\n\n<b>⚙️ Настройки уведомлений:</b>\n"
+                "Используйте /notifications для выбора способа уведомлений"
+            )
+        
+        self.send_message(chat_id, message)
+        logger.info(f"{'✅' if success else '❌'} Регистрация через кнопку")
+    
+    def process_link_view(
+        self,
+        chat_id: int,
+        callback_query_id: str,
+        url: str
+    ) -> None:
+        """🔧 НОВОЕ: Показывает профиль по ссылке."""
+        self.answer_callback_query(callback_query_id)
+        
+        user_id = self.users_db.extract_id_from_url(url)
+        
+        if not user_id:
+            self.send_message(chat_id, "❌ Неверный формат ссылки")
+            return
+        
+        # Загружаем профиль
+        profile = self.sheets_parser.parse_profile(user_id)
+        
+        if not profile:
+            self.send_message(
+                chat_id,
+                "❌ Профиль не найден в таблице"
+            )
+            return
+        
+        message = self.sheets_parser.format_profile_message(profile)
+        self.send_message(chat_id, message)
+        logger.info(f"✅ Профиль {user_id} показан")
+    
     def process_callback_query(self, callback_query: dict) -> None:
         """Обрабатывает нажатия на inline кнопки."""
         callback_id = callback_query.get('id')
@@ -319,26 +480,43 @@ class TelegramUnifiedHandler:
         
         from_user = callback_query.get('from', {})
         chat_id = from_user.get('id')
-        
-        # 🔧 НОВОЕ: Обновляем telegram username при каждом взаимодействии
         telegram_username = from_user.get('username')
-        self.users_db.update_telegram_username(chat_id, telegram_username)
         
         message = callback_query.get('message', {})
         message_id = message.get('message_id')
         
         logger.info(f"📩 Callback от {chat_id}: {callback_data}")
         
-        if callback_data == "back_to_list":
-            self.answer_callback_query(callback_id)
-            self.show_accounts_list(chat_id)
+        # Обновляем telegram username
+        self.users_db.update_telegram_username(chat_id, telegram_username)
         
-        elif callback_data.startswith("account:"):
+        # 🔧 НОВОЕ: Обработка действий с ссылками
+        if callback_data.startswith("link_add:"):
+            url = callback_data.replace("link_add:", "")
+            self.process_link_add(chat_id, telegram_username, callback_id, url)
+        
+        elif callback_data.startswith("link_view:"):
+            url = callback_data.replace("link_view:", "")
+            self.process_link_view(chat_id, callback_id, url)
+        
+        # 🔧 НОВОЕ: Просмотр профиля
+        elif callback_data.startswith("profile:"):
+            user_id = callback_data.split(":", 1)[1]
+            self.show_profile(chat_id, callback_id, user_id)
+        
+        # Назад к списку уведомлений
+        elif callback_data == "back_to_notif":
+            self.answer_callback_query(callback_id)
+            self.show_notifications_list(chat_id)
+        
+        # Открыть настройки уведомлений
+        elif callback_data.startswith("notif:"):
             user_id = callback_data.split(":", 1)[1]
             self.answer_callback_query(callback_id)
             self.show_notification_settings(chat_id, message_id, user_id)
         
-        elif callback_data.startswith("notify:"):
+        # Изменить тип уведомлений
+        elif callback_data.startswith("set_notif:"):
             parts = callback_data.split(":")
             if len(parts) == 3:
                 user_id = parts[1]
@@ -360,13 +538,12 @@ class TelegramUnifiedHandler:
         text: str
     ) -> None:
         """Обрабатывает команду от пользователя."""
-        # 🔧 НОВОЕ: Обновляем telegram username при каждом взаимодействии
         self.users_db.update_telegram_username(chat_id, telegram_username)
         
         text = text.strip()
         logger.info(f"📩 Команда от {telegram_username or first_name} ({chat_id}): {text[:50]}")
         
-        # === КОМАНДА /start ===
+        # === /start ===
         if text.startswith('/start'):
             self.send_message(
                 chat_id,
@@ -376,33 +553,88 @@ class TelegramUnifiedHandler:
                 "Когда в клубе появится новая карта и она есть у вас, "
                 "я отправлю вам уведомление!\n\n"
                 "<b>📝 Как зарегистрировать аккаунт:</b>\n"
-                "Отправьте мне ссылку на ваш профиль MangaBuff:\n"
-                "• <code>https://mangabuff.ru/users/123456</code>\n"
-                "• Или просто ID: <code>123456</code>\n\n"
+                "Используйте команду:\n"
+                "<code>/add https://mangabuff.ru/users/123456</code>\n\n"
                 "<b>📋 Команды:</b>\n"
-                "/list - Мои аккаунты\n"
                 "/add - Добавить аккаунт\n"
+                "/notifications - Настройки уведомлений\n"
+                "/profile - Просмотр профиля\n"
                 "/remove - Удалить аккаунт\n"
                 "/help - Помощь"
             )
-            logger.info(f"✅ Отправлен /start для {chat_id}")
         
-        # === КОМАНДА /add ===
+        # === /add ===
         elif text.startswith('/add'):
-            self.send_message(
+            parts = text.split(maxsplit=1)
+            
+            if len(parts) < 2:
+                self.send_message(
+                    chat_id,
+                    "📝 <b>Добавление аккаунта</b>\n\n"
+                    "<b>Использование:</b>\n"
+                    "<code>/add https://mangabuff.ru/users/123456</code>\n"
+                    "<code>/add 123456</code>\n\n"
+                    "<i>❗ За раз можно добавить только один аккаунт</i>"
+                )
+                return
+            
+            url = parts[1].strip()
+            
+            # 🔧 ВАЛИДАЦИЯ
+            if self.validator:
+                user_id = self.users_db.extract_id_from_url(url)
+                
+                if not user_id:
+                    self.send_message(
+                        chat_id,
+                        "❌ <b>Неверный формат ссылки</b>\n\n"
+                        "Примеры:\n"
+                        "<code>/add https://mangabuff.ru/users/123456</code>\n"
+                        "<code>/add 123456</code>"
+                    )
+                    return
+                
+                logger.info(f"🔐 Проверка условий регистрации для {user_id}...")
+                
+                validation_ok, validation_message = self.validator.validate_user_registration(
+                    telegram_id=chat_id,
+                    mangabuff_user_id=user_id
+                )
+                
+                if not validation_ok:
+                    logger.warning(f"❌ Валидация не пройдена: {telegram_username}")
+                    self.send_message(chat_id, validation_message)
+                    return
+                
+                logger.info(f"✅ Валидация пройдена для {user_id}")
+            
+            # Регистрация
+            success, message = self.users_db.register_account(
                 chat_id,
-                "📝 <b>Добавление аккаунта</b>\n\n"
-                "Отправьте мне ссылку на ваш профиль MangaBuff:\n"
-                "• <code>https://mangabuff.ru/users/123456</code>\n"
-                "• Или просто ID: <code>123456</code>\n\n"
-                "<i>После добавления используйте /list для настройки уведомлений</i>"
+                telegram_username,
+                url,
+                mangabuff_username=None,
+                notification_type='dm'
             )
+            
+            if success:
+                message += (
+                    "\n\n<b>⚙️ Настройки уведомлений:</b>\n"
+                    "Используйте /notifications для выбора способа уведомлений"
+                )
+            
+            self.send_message(chat_id, message)
+            logger.info(f"{'✅' if success else '❌'} Регистрация: {telegram_username} -> {url[:50]}")
         
-        # === КОМАНДА /list ===
-        elif text.startswith('/list'):
-            self.show_accounts_list(chat_id)
+        # === /notifications (бывший /list) ===
+        elif text.startswith('/notifications') or text.startswith('/list'):
+            self.show_notifications_list(chat_id)
         
-        # === КОМАНДА /remove ===
+        # === /profile ===
+        elif text.startswith('/profile'):
+            self.show_profile_list(chat_id)
+        
+        # === /remove ===
         elif text.startswith('/remove'):
             parts = text.split()
             
@@ -432,7 +664,7 @@ class TelegramUnifiedHandler:
                 
                 self.send_message(chat_id, "\n".join(lines))
         
-        # === КОМАНДА /help ===
+        # === /help ===
         elif text.startswith('/help'):
             self.send_message(
                 chat_id,
@@ -446,63 +678,31 @@ class TelegramUnifiedHandler:
                 "<b>📝 Как добавить аккаунт?</b>\n"
                 "1. Зайдите на свой профиль на mangabuff.ru\n"
                 "2. Скопируйте ссылку или ID\n"
-                "3. Отправьте боту\n\n"
+                "3. Отправьте команду:\n"
+                "   <code>/add https://mangabuff.ru/users/123456</code>\n\n"
                 "<b>📋 Команды:</b>\n"
                 "/start - Приветствие\n"
-                "/list - Мои аккаунты (с кнопками настроек)\n"
                 "/add - Добавить аккаунт\n"
+                "/notifications - Настройки уведомлений\n"
+                "/profile - Просмотр профиля\n"
                 "/remove - Удалить аккаунт"
             )
         
-        # === РЕГИСТРАЦИЯ ПО URL ===
+        # === ССЫЛКА БЕЗ КОМАНДЫ ===
         elif not text.startswith('/'):
-            # 🔧 НОВОЕ: Проверка валидации ПЕРЕД регистрацией
-            if self.validator:
-                # Извлекаем user_id из ссылки
-                user_id = self.users_db.extract_id_from_url(text)
-                
-                if not user_id:
-                    self.send_message(
-                        chat_id,
-                        "❌ <b>Неверный формат ссылки</b>\n\n"
-                        "Отправьте ссылку на профиль:\n"
-                        "• <code>https://mangabuff.ru/users/123456</code>\n"
-                        "• Или просто ID: <code>123456</code>"
-                    )
-                    return
-                
-                # Выполняем валидацию
-                logger.info(f"🔐 Проверка условий регистрации для {user_id}...")
-                
-                validation_ok, validation_message = self.validator.validate_user_registration(
-                    telegram_id=chat_id,
-                    mangabuff_user_id=user_id
+            # 🔧 НОВОЕ: Проверяем это ли ссылка
+            user_id = self.users_db.extract_id_from_url(text)
+            
+            if user_id:
+                # Это ссылка - спрашиваем что делать
+                self.ask_link_action(chat_id, text)
+            else:
+                # Не ссылка
+                self.send_message(
+                    chat_id,
+                    "❌ Неверный формат ссылки\n\n"
+                    "Используйте /help для списка команд"
                 )
-                
-                if not validation_ok:
-                    logger.warning(f"❌ Валидация не пройдена: {telegram_username}")
-                    self.send_message(chat_id, validation_message)
-                    return
-                
-                logger.info(f"✅ Валидация пройдена для {user_id}")
-            
-            # 🔧 ОБНОВЛЕНО: register_account теперь автоматически парсит nickname
-            success, message = self.users_db.register_account(
-                chat_id,
-                telegram_username,
-                text,
-                mangabuff_username=None,  # Будет распарсен автоматически
-                notification_type='dm'
-            )
-            
-            if success:
-                message += (
-                    "\n\n<b>⚙️ Настройки уведомлений:</b>\n"
-                    "Используйте /list для выбора способа уведомлений"
-                )
-            
-            self.send_message(chat_id, message)
-            logger.info(f"{'✅' if success else '❌'} Регистрация: {telegram_username} -> {text[:50]}")
         
         # === НЕИЗВЕСТНАЯ КОМАНДА ===
         else:

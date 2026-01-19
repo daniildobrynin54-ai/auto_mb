@@ -1,56 +1,14 @@
 {
   "7991034391": {
     "telegram_username": null,
+    "last_username_update": "2026-01-19T22:34:26.567032",
     "mangabuff_accounts": [
       {
         "user_id": "309607",
         "username": "Замок Сефира",
-        "notification_type": "dm",
-        "last_nickname_update": "2026-01-19T14:06:35.468055"
-      },
-      {
-        "user_id": "1028092",
-        "username": "ТаКтоЛюбила",
-        "last_nickname_update": "2026-01-19T14:42:47.270141",
+        "last_nickname_update": "2026-01-19T22:34:32.830799",
         "notification_type": "dm"
       }
-    ],
-    "last_username_update": "2025-01-19T14:03:07.403139"
-  },
-  "5260214320": {
-    "telegram_username": "PoliS2003",
-    "mangabuff_accounts": [
-      {
-        "user_id": "258280",
-        "username": "User258280",
-        "notification_type": "dm",
-        "last_nickname_update": "2025-01-19T14:03:07.403139"
-      },
-      {
-        "user_id": "285450",
-        "username": "User285450",
-        "notification_type": "dm",
-        "last_nickname_update": "2025-01-19T14:03:07.403139"
-      }
-    ],
-    "last_username_update": "2025-01-19T14:03:07.403139"
-  },
-  "5547324480": {
-    "telegram_username": "Dima1247",
-    "mangabuff_accounts": [
-      {
-        "user_id": "903081",
-        "username": "User903081",
-        "notification_type": "dm",
-        "last_nickname_update": "2025-01-19T14:03:07.403139"
-      },
-      {
-        "user_id": "1028092",
-        "username": "User1028092",
-        "notification_type": "dm",
-        "last_nickname_update": "2025-01-19T14:03:07.403139"
-      }
-    ],
-    "last_username_update": "2025-01-19T14:03:07.403139"
+    ]
   }
 }
