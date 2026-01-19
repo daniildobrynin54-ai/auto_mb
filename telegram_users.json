@@ -1,0 +1,47 @@
+{
+  "7991034391": {
+    "telegram_username": null,
+    "mangabuff_accounts": [
+      {
+        "user_id": "1028092",
+        "username": "User1028092",
+        "notification_type": "dm"
+      },
+      {
+        "user_id": "309607",
+        "username": "User309607",
+        "notification_type": "dm"
+      }
+    ]
+  },
+  "5260214320": {
+    "telegram_username": "PoliS2003",
+    "mangabuff_accounts": [
+      {
+        "user_id": "258280",
+        "username": "User258280",
+        "notification_type": "dm"
+      },
+      {
+        "user_id": "285450",
+        "username": "User285450",
+        "notification_type": "dm"
+      }
+    ]
+  },
+  "5547324480": {
+    "telegram_username": "Dima1247",
+    "mangabuff_accounts": [
+      {
+        "user_id": "903081",
+        "username": "User903081",
+        "notification_type": "dm"
+      },
+      {
+        "user_id": "1028092",
+        "username": "User1028092",
+        "notification_type": "dm"
+      }
+    ]
+  }
+}
