@@ -1,4 +1,4 @@
-"""Объединенный обработчик Telegram бота - команды + мониторинг ответов с inline кнопками."""
+"""Объединенный обработчик Telegram бота с автообновлением."""
 
 import threading
 import time
@@ -12,7 +12,7 @@ logger = get_logger("telegram_unified")
 
 
 class TelegramUnifiedHandler:
-    """Единый обработчик для команд и мониторинга ответов с inline кнопками."""
+    """Единый обработчик для команд и мониторинга ответов."""
     
     TRIGGER_KEYWORDS = [
         "смена карты",
@@ -40,7 +40,7 @@ class TelegramUnifiedHandler:
         self.running = False
         self.thread = None
         self.users_db = get_users_db()
-        self.bot_message_ids = set()  # Для мониторинга ответов
+        self.bot_message_ids = set()
         
         # Прокси
         self.proxies = None
@@ -71,7 +71,7 @@ class TelegramUnifiedHandler:
             return False
     
     def register_bot_message(self, message_id: int) -> None:
-        """Регистрирует ID сообщения бота для мониторинга ответов."""
+        """Регистрирует ID сообщения бота."""
         self.bot_message_ids.add(message_id)
         logger.debug(f"Зарегистрировано сообщение бота: {message_id}")
     
@@ -82,7 +82,7 @@ class TelegramUnifiedHandler:
         parse_mode: str = "HTML",
         reply_markup: Optional[dict] = None
     ) -> bool:
-        """Отправляет сообщение с кнопками."""
+        """Отправляет сообщение."""
         try:
             url = f"{self.api_url}/sendMessage"
             data = {
@@ -112,7 +112,7 @@ class TelegramUnifiedHandler:
         text: str = "",
         show_alert: bool = False
     ) -> bool:
-        """Отвечает на callback query (уведомление после нажатия кнопки)."""
+        """Отвечает на callback query."""
         try:
             url = f"{self.api_url}/answerCallbackQuery"
             data = {
@@ -155,7 +155,7 @@ class TelegramUnifiedHandler:
             return False
     
     def _is_trigger_message(self, text: str) -> bool:
-        """Проверяет содержит ли текст триггерные слова."""
+        """Проверяет триггерные слова."""
         if not text:
             return False
         
@@ -163,9 +163,8 @@ class TelegramUnifiedHandler:
         return any(keyword in text_lower for keyword in self.TRIGGER_KEYWORDS)
     
     def show_accounts_list(self, chat_id: int) -> None:
-        """
-        🔧 НОВОЕ: Показывает список аккаунтов с кнопками.
-        """
+        """Показывает список аккаунтов с кнопками."""
+        # 🔧 ОБНОВЛЕНО: get_user_accounts теперь автоматически обновляет nicknames
         accounts = self.users_db.get_user_accounts(chat_id)
         
         if not accounts:
@@ -177,26 +176,22 @@ class TelegramUnifiedHandler:
             )
             return
         
-        # Создаем кнопки для каждого аккаунта
         keyboard = {
             "inline_keyboard": []
         }
         
         for acc in accounts:
-            username = acc['username']
+            username = acc['username']  # 🔧 Теперь это реальный nickname
             user_id = acc['user_id']
             notif_type = acc['notification_type']
             
-            # Эмодзи текущего типа
             emoji = "📬" if notif_type == 'dm' else "🏷"
             
-            # Кнопка для каждого аккаунта
             keyboard["inline_keyboard"].append([{
                 "text": f"{emoji} {username}",
                 "callback_data": f"account:{user_id}"
             }])
         
-        # Заголовок
         text = "<b>📝 Ваши аккаунты MangaBuff:</b>\n\n"
         text += "Нажмите на аккаунт для настройки уведомлений:"
         
@@ -209,12 +204,9 @@ class TelegramUnifiedHandler:
         message_id: int,
         user_id: str
     ) -> None:
-        """
-        🔧 НОВОЕ: Показывает настройки уведомлений для аккаунта с кнопками.
-        """
+        """Показывает настройки уведомлений."""
         accounts = self.users_db.get_user_accounts(chat_id)
         
-        # Находим аккаунт
         account = None
         for acc in accounts:
             if acc['user_id'] == user_id:
@@ -229,13 +221,11 @@ class TelegramUnifiedHandler:
             )
             return
         
-        username = account['username']
+        username = account['username']  # 🔧 Теперь это реальный nickname
         current_type = account['notification_type']
         
-        # Текущий способ
         current_text = "📬 Личные сообщения" if current_type == 'dm' else "🏷 Тег во вкладе"
         
-        # Создаем кнопки выбора
         keyboard = {
             "inline_keyboard": [
                 [
@@ -274,10 +264,8 @@ class TelegramUnifiedHandler:
         user_id: str,
         notification_type: str
     ) -> None:
-        """
-        🔧 НОВОЕ: Устанавливает тип уведомлений через кнопку.
-        """
-        logger.info(f"🔧 Изменение типа через кнопку: TG {chat_id} -> MB {user_id} -> {notification_type}")
+        """Устанавливает тип уведомлений через кнопку."""
+        logger.info(f"🔧 Изменение типа: TG {chat_id} -> MB {user_id} -> {notification_type}")
         
         success, message = self.users_db.set_notification_type(
             chat_id,
@@ -286,7 +274,6 @@ class TelegramUnifiedHandler:
         )
         
         if success:
-            # Показываем уведомление
             notif_text = "личные сообщения" if notification_type == 'dm' else "Тег во вкладе"
             self.answer_callback_query(
                 callback_query_id,
@@ -294,12 +281,10 @@ class TelegramUnifiedHandler:
                 show_alert=False
             )
             
-            # Обновляем сообщение с новыми кнопками
             self.show_notification_settings(chat_id, message_id, user_id)
             
-            logger.info(f"✅ Тип уведомлений изменен: {user_id} -> {notification_type}")
+            logger.info(f"✅ Тип изменен: {user_id} -> {notification_type}")
         else:
-            # Показываем ошибку
             self.answer_callback_query(
                 callback_query_id,
                 f"❌ Ошибка: {message}",
@@ -308,33 +293,31 @@ class TelegramUnifiedHandler:
             logger.error(f"❌ Не удалось изменить тип: {message}")
     
     def process_callback_query(self, callback_query: dict) -> None:
-        """
-        🔧 НОВОЕ: Обрабатывает нажатия на inline кнопки.
-        """
+        """Обрабатывает нажатия на inline кнопки."""
         callback_id = callback_query.get('id')
         callback_data = callback_query.get('data', '')
         
         from_user = callback_query.get('from', {})
         chat_id = from_user.get('id')
         
+        # 🔧 НОВОЕ: Обновляем telegram username при каждом взаимодействии
+        telegram_username = from_user.get('username')
+        self.users_db.update_telegram_username(chat_id, telegram_username)
+        
         message = callback_query.get('message', {})
         message_id = message.get('message_id')
         
         logger.info(f"📩 Callback от {chat_id}: {callback_data}")
         
-        # === КНОПКА: Назад к списку ===
         if callback_data == "back_to_list":
             self.answer_callback_query(callback_id)
-            # Удаляем старое сообщение и показываем новый список
             self.show_accounts_list(chat_id)
         
-        # === КНОПКА: Показать настройки аккаунта ===
         elif callback_data.startswith("account:"):
             user_id = callback_data.split(":", 1)[1]
             self.answer_callback_query(callback_id)
             self.show_notification_settings(chat_id, message_id, user_id)
         
-        # === КНОПКА: Изменить тип уведомлений ===
         elif callback_data.startswith("notify:"):
             parts = callback_data.split(":")
             if len(parts) == 3:
@@ -357,6 +340,9 @@ class TelegramUnifiedHandler:
         text: str
     ) -> None:
         """Обрабатывает команду от пользователя."""
+        # 🔧 НОВОЕ: Обновляем telegram username при каждом взаимодействии
+        self.users_db.update_telegram_username(chat_id, telegram_username)
+        
         text = text.strip()
         logger.info(f"📩 Команда от {telegram_username or first_name} ({chat_id}): {text[:50]}")
         
@@ -377,7 +363,6 @@ class TelegramUnifiedHandler:
                 "/list - Мои аккаунты\n"
                 "/add - Добавить аккаунт\n"
                 "/remove - Удалить аккаунт\n"
-                "/stats - Статистика\n"
                 "/help - Помощь"
             )
             logger.info(f"✅ Отправлен /start для {chat_id}")
@@ -401,14 +386,12 @@ class TelegramUnifiedHandler:
         elif text.startswith('/remove'):
             parts = text.split()
             
-            # Удалить конкретный аккаунт
             if len(parts) >= 2:
                 user_id = parts[1].strip()
                 success, message = self.users_db.unregister_account(chat_id, user_id)
                 self.send_message(chat_id, message)
-                logger.info(f"{'✅' if success else '❌'} Удаление аккаунта: {chat_id} -> {user_id}")
+                logger.info(f"{'✅' if success else '❌'} Удаление: {chat_id} -> {user_id}")
             
-            # Показать инструкцию
             else:
                 accounts = self.users_db.get_user_accounts(chat_id)
                 
@@ -448,35 +431,21 @@ class TelegramUnifiedHandler:
                 "/start - Приветствие\n"
                 "/list - Мои аккаунты (с кнопками настроек)\n"
                 "/add - Добавить аккаунт\n"
-                "/remove - Удалить аккаунт\n"
-                "/stats - Статистика"
-            )
-        
-        # === КОМАНДА /stats ===
-        elif text.startswith('/stats'):
-            users_count = self.users_db.get_all_users_count()
-            accounts_count = self.users_db.get_all_accounts_count()
-            
-            self.send_message(
-                chat_id,
-                f"📊 <b>Статистика бота</b>\n\n"
-                f"Зарегистрировано пользователей: <b>{users_count}</b>\n"
-                f"Всего привязанных аккаунтов: <b>{accounts_count}</b>"
+                "/remove - Удалить аккаунт"
             )
         
         # === РЕГИСТРАЦИЯ ПО URL ===
         elif not text.startswith('/'):
-            # Это может быть URL или ID для регистрации
+            # 🔧 ОБНОВЛЕНО: register_account теперь автоматически парсит nickname
             success, message = self.users_db.register_account(
                 chat_id,
                 telegram_username,
                 text,
-                mangabuff_username=None,  # Будет обновлено при парсинге
-                notification_type='dm'  # По умолчанию ЛС
+                mangabuff_username=None,  # Будет распарсен автоматически
+                notification_type='dm'
             )
             
             if success:
-                # Добавляем подсказку про настройки
                 message += (
                     "\n\n<b>⚙️ Настройки уведомлений:</b>\n"
                     "Используйте /list для выбора способа уведомлений"
@@ -501,11 +470,9 @@ class TelegramUnifiedHandler:
         from_user: dict
     ) -> None:
         """Обрабатывает ответ на сообщение бота."""
-        # Проверяем что это ответ на наше сообщение
         if reply_to_id not in self.bot_message_ids:
             return
         
-        # Проверяем триггерные слова
         if not self._is_trigger_message(text):
             return
         
@@ -517,11 +484,9 @@ class TelegramUnifiedHandler:
         print(f"   От: {username or first_name}")
         print(f"   Текст: {text}\n")
         
-        # Вызываем callback
         if self.on_replace_triggered:
             self.on_replace_triggered()
         
-        # Удаляем ID чтобы не срабатывать повторно
         self.bot_message_ids.discard(reply_to_id)
     
     def get_updates(self) -> list:
@@ -531,7 +496,7 @@ class TelegramUnifiedHandler:
             params = {
                 "offset": self.last_update_id + 1,
                 "timeout": 30,
-                "allowed_updates": ["message", "callback_query"]  # 🔧 ДОБАВЛЕНО: callback_query
+                "allowed_updates": ["message", "callback_query"]
             }
             
             response = requests.get(
@@ -566,13 +531,11 @@ class TelegramUnifiedHandler:
             try:
                 self.last_update_id = update.get('update_id', 0)
                 
-                # === ОБРАБОТКА CALLBACK QUERY (нажатия на кнопки) ===
                 callback_query = update.get('callback_query')
                 if callback_query:
                     self.process_callback_query(callback_query)
                     continue
                 
-                # === ОБРАБОТКА ОБЫЧНЫХ СООБЩЕНИЙ ===
                 message = update.get('message')
                 if not message:
                     continue
@@ -590,19 +553,15 @@ class TelegramUnifiedHandler:
                 if not chat_id or not text:
                     continue
                 
-                # === ЛИЧНЫЕ СООБЩЕНИЯ (команды) ===
                 if chat_type == 'private':
                     self.process_command(chat_id, telegram_username, first_name, text)
                 
-                # === ГРУППОВЫЕ СООБЩЕНИЯ (мониторинг ответов) ===
                 elif chat_id_str == self.chat_id:
-                    # Проверяем thread_id если указан
                     if self.thread_id:
                         message_thread_id = message.get('message_thread_id')
                         if message_thread_id != self.thread_id:
                             continue
                     
-                    # Проверяем это ответ?
                     reply_to = message.get('reply_to_message')
                     if reply_to:
                         replied_to_id = reply_to.get('message_id')
@@ -613,7 +572,7 @@ class TelegramUnifiedHandler:
     
     def polling_loop(self) -> None:
         """Основной цикл получения обновлений."""
-        logger.info("🤖 Telegram unified handler запущен и ожидает...")
+        logger.info("🤖 Telegram unified handler запущен")
         logger.info(f"👁️  Мониторинг триггеров: {', '.join(self.TRIGGER_KEYWORDS)}")
         logger.info("📱 Отправьте /start боту для регистрации")
         
@@ -629,7 +588,7 @@ class TelegramUnifiedHandler:
                 logger.error(f"Ошибка в цикле polling ({consecutive_errors}/{max_errors}): {e}")
                 
                 if consecutive_errors >= max_errors:
-                    logger.error(f"Слишком много ошибок подряд ({max_errors}), остановка бота")
+                    logger.error(f"Слишком много ошибок ({max_errors}), остановка")
                     self.running = False
                     break
                 
@@ -660,7 +619,6 @@ class TelegramUnifiedHandler:
         logger.info("✅ Unified handler остановлен")
 
 
-# Глобальный экземпляр
 _unified_handler: Optional[TelegramUnifiedHandler] = None
 
 

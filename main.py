@@ -124,6 +124,13 @@ class MangaBuffApp:
             return False
         
         print_success("Авторизация успешна\n")
+        
+        # 🔧 НОВОЕ: Устанавливаем session в БД для парсинга nicknames
+        from telegram_users_db import get_users_db
+        users_db = get_users_db()
+        users_db.set_session(self.session)
+        logger.info("✅ Session установлена в БД для парсинга nicknames")
+
         return True
     
     def init_stats_manager(self) -> bool:
