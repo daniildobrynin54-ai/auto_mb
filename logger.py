@@ -1,10 +1,12 @@
-"""Система логирования с цветным выводом и сохранением в файлы по дням."""
+"""Система логирования с цветным выводом, сохранением в файлы по дням и автоматической ротацией."""
 
 import os
 import logging
 from datetime import datetime
 from typing import Optional
 from pathlib import Path
+import threading
+import time
 
 
 # Цветовые коды для консоли (ANSI)
@@ -13,7 +15,6 @@ class Colors:
     RESET = '\033[0m'
     BOLD = '\033[1m'
     
-    # Основные цвета
     BLACK = '\033[30m'
     RED = '\033[31m'
     GREEN = '\033[32m'
@@ -23,7 +24,6 @@ class Colors:
     CYAN = '\033[36m'
     WHITE = '\033[37m'
     
-    # Яркие цвета
     BRIGHT_BLACK = '\033[90m'
     BRIGHT_RED = '\033[91m'
     BRIGHT_GREEN = '\033[92m'
@@ -33,7 +33,6 @@ class Colors:
     BRIGHT_CYAN = '\033[96m'
     BRIGHT_WHITE = '\033[97m'
     
-    # Фон
     BG_RED = '\033[41m'
     BG_GREEN = '\033[42m'
     BG_YELLOW = '\033[43m'
@@ -43,7 +42,6 @@ class Colors:
 class ColoredFormatter(logging.Formatter):
     """Форматтер с цветным выводом в консоль."""
     
-    # Цветовая схема для уровней логирования
     LEVEL_COLORS = {
         'DEBUG': Colors.BRIGHT_BLACK,
         'INFO': Colors.BRIGHT_CYAN,
@@ -52,7 +50,6 @@ class ColoredFormatter(logging.Formatter):
         'CRITICAL': Colors.BG_RED + Colors.BRIGHT_WHITE,
     }
     
-    # Эмодзи для уровней логирования
     LEVEL_EMOJI = {
         'DEBUG': '🔧',
         'INFO': 'ℹ️ ',
@@ -62,35 +59,22 @@ class ColoredFormatter(logging.Formatter):
     }
     
     def __init__(self, fmt: Optional[str] = None, datefmt: Optional[str] = None, use_colors: bool = True):
-        """
-        Инициализация форматтера.
-        
-        Args:
-            fmt: Формат сообщения
-            datefmt: Формат даты и времени
-            use_colors: Использовать ли цвета в выводе
-        """
         super().__init__(fmt, datefmt)
         self.use_colors = use_colors
     
     def format(self, record: logging.LogRecord) -> str:
         """Форматирует запись лога с цветами."""
         if self.use_colors:
-            # Получаем цвет и эмодзи для уровня
             level_color = self.LEVEL_COLORS.get(record.levelname, '')
             level_emoji = self.LEVEL_EMOJI.get(record.levelname, '')
             
-            # Форматируем уровень с цветом
             levelname = f"{level_color}{level_emoji}  {record.levelname}{Colors.RESET}"
             
-            # Сохраняем оригинальное имя уровня
             original_levelname = record.levelname
             record.levelname = levelname
             
-            # Форматируем сообщение
             result = super().format(record)
             
-            # Восстанавливаем оригинальное имя
             record.levelname = original_levelname
             
             return result
@@ -106,8 +90,90 @@ class PlainFormatter(logging.Formatter):
         return super().format(record)
 
 
+class DailyRotatingFileHandler(logging.Handler):
+    """
+    🔧 НОВОЕ: Handler с автоматической ротацией по дням.
+    
+    Создает новый файл при смене суток даже если приложение не перезапускалось.
+    """
+    
+    def __init__(self, base_dir: str, level: int = logging.INFO):
+        super().__init__(level)
+        self.base_dir = Path(base_dir)
+        self.base_dir.mkdir(parents=True, exist_ok=True)
+        self.current_date = None
+        self.current_handler = None
+        self.lock = threading.Lock()
+        
+        # Форматтер для файлов
+        file_format = '[%(asctime)s] %(levelname)-8s | %(name)s > %(message)s'
+        self.formatter = PlainFormatter(
+            fmt=file_format,
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        
+        self._rotate_if_needed()
+    
+    def _get_current_date(self) -> str:
+        """Возвращает текущую дату в формате YYYY-MM-DD."""
+        return datetime.now().strftime('%Y-%m-%d')
+    
+    def _rotate_if_needed(self) -> None:
+        """Проверяет и выполняет ротацию если нужно."""
+        current_date = self._get_current_date()
+        
+        if current_date != self.current_date:
+            with self.lock:
+                # Двойная проверка после получения блокировки
+                if current_date != self.current_date:
+                    # Закрываем старый handler
+                    if self.current_handler:
+                        self.current_handler.close()
+                    
+                    # Создаем новый файл
+                    log_file = self.base_dir / f"{current_date}.log"
+                    self.current_handler = logging.FileHandler(
+                        log_file,
+                        mode='a',
+                        encoding='utf-8'
+                    )
+                    self.current_handler.setFormatter(self.formatter)
+                    
+                    self.current_date = current_date
+                    
+                    # Логируем ротацию
+                    if self.current_handler:
+                        rotation_msg = f"=== Log rotation: new file created at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ==="
+                        record = logging.LogRecord(
+                            name='logger',
+                            level=logging.INFO,
+                            pathname='',
+                            lineno=0,
+                            msg=rotation_msg,
+                            args=(),
+                            exc_info=None
+                        )
+                        self.current_handler.emit(record)
+    
+    def emit(self, record: logging.LogRecord) -> None:
+        """Записывает лог-запись, выполняя ротацию при необходимости."""
+        try:
+            self._rotate_if_needed()
+            
+            if self.current_handler:
+                self.current_handler.emit(record)
+        except Exception:
+            self.handleError(record)
+    
+    def close(self) -> None:
+        """Закрывает handler."""
+        if self.current_handler:
+            self.current_handler.close()
+        super().close()
+
+
 class AppLogger:
-    """Главный класс для управления логированием."""
+    """Главный класс для управления логированием с автоматической ротацией."""
     
     def __init__(
         self,
@@ -116,31 +182,18 @@ class AppLogger:
         level: int = logging.INFO,
         console_colors: bool = True
     ):
-        """
-        Инициализация логгера.
-        
-        Args:
-            name: Имя логгера
-            base_dir: Базовая директория для логов
-            level: Уровень логирования
-            console_colors: Использовать ли цвета в консоли
-        """
         self.name = name
         self.base_dir = Path(base_dir)
         self.level = level
         self.console_colors = console_colors
         
-        # Создаем директорию для логов
         self.base_dir.mkdir(parents=True, exist_ok=True)
         
-        # Создаем логгер
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
         
-        # Очищаем существующие обработчики
         self.logger.handlers.clear()
         
-        # Добавляем обработчики
         self._setup_handlers()
     
     def _setup_handlers(self):
@@ -149,7 +202,6 @@ class AppLogger:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(self.level)
         
-        # Формат для консоли с цветами
         console_format = (
             f"{Colors.BRIGHT_BLACK}[%(asctime)s]{Colors.RESET} "
             f"%(levelname)s "
@@ -167,28 +219,12 @@ class AppLogger:
         console_handler.setFormatter(console_formatter)
         self.logger.addHandler(console_handler)
         
-        # === ФАЙЛОВЫЙ ОБРАБОТЧИК (текущий день) ===
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        log_file = self.base_dir / f"{current_date}.log"
-        
-        file_handler = logging.FileHandler(
-            log_file,
-            mode='a',
-            encoding='utf-8'
+        # === 🔧 НОВОЕ: ФАЙЛОВЫЙ ОБРАБОТЧИК С АВТОМАТИЧЕСКОЙ РОТАЦИЕЙ ===
+        rotating_handler = DailyRotatingFileHandler(
+            base_dir=str(self.base_dir),
+            level=self.level
         )
-        file_handler.setLevel(self.level)
-        
-        # Формат для файла без цветов
-        file_format = (
-            '[%(asctime)s] %(levelname)-8s | %(name)s > %(message)s'
-        )
-        
-        file_formatter = PlainFormatter(
-            fmt=file_format,
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        file_handler.setFormatter(file_formatter)
-        self.logger.addHandler(file_handler)
+        self.logger.addHandler(rotating_handler)
         
         # === ФАЙЛОВЫЙ ОБРАБОТЧИК (все ошибки) ===
         error_log_file = self.base_dir / "errors.log"
@@ -199,6 +235,12 @@ class AppLogger:
             encoding='utf-8'
         )
         error_handler.setLevel(logging.ERROR)
+        
+        file_format = '[%(asctime)s] %(levelname)-8s | %(name)s > %(message)s'
+        file_formatter = PlainFormatter(
+            fmt=file_format,
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
         error_handler.setFormatter(file_formatter)
         self.logger.addHandler(error_handler)
     
@@ -227,14 +269,7 @@ class AppLogger:
         self.logger.exception(message, *args, **kwargs)
     
     def section(self, title: str, char: str = "=", length: int = 60):
-        """
-        Выводит секцию с заголовком.
-        
-        Args:
-            title: Заголовок секции
-            char: Символ для рамки
-            length: Длина рамки
-        """
+        """Выводит секцию с заголовком."""
         border = char * length
         self.info(border)
         self.info(f"  {title}")
@@ -255,13 +290,6 @@ class ModuleLogger:
     """Логгер для отдельного модуля."""
     
     def __init__(self, module_name: str, app_logger: AppLogger):
-        """
-        Инициализация логгера модуля.
-        
-        Args:
-            module_name: Имя модуля
-            app_logger: Главный логгер приложения
-        """
         self.module_name = module_name
         self.app_logger = app_logger
         self.logger = logging.getLogger(f"{app_logger.name}.{module_name}")
@@ -292,22 +320,15 @@ class ModuleLogger:
         self.logger.exception(message, *args, **kwargs)
     
     def section(self, title: str, char: str = "=", length: int = 60):
-        """
-        Выводит секцию с заголовком (делегирует в AppLogger).
-        
-        Args:
-            title: Заголовок секции
-            char: Символ для рамки
-            length: Длина рамки
-        """
+        """Выводит секцию с заголовком."""
         self.app_logger.section(title, char, length)
     
     def success(self, message: str):
-        """Выводит сообщение об успехе (делегирует в AppLogger)."""
+        """Выводит сообщение об успехе."""
         self.app_logger.success(message)
     
     def failure(self, message: str):
-        """Выводит сообщение об ошибке (делегирует в AppLogger)."""
+        """Выводит сообщение об ошибке."""
         self.app_logger.failure(message)
 
 
@@ -321,18 +342,7 @@ def setup_logger(
     level: int = logging.INFO,
     console_colors: bool = True
 ) -> AppLogger:
-    """
-    Настраивает и возвращает главный логгер приложения.
-    
-    Args:
-        name: Имя логгера
-        base_dir: Базовая директория для логов
-        level: Уровень логирования
-        console_colors: Использовать ли цвета в консоли
-    
-    Returns:
-        Настроенный логгер
-    """
+    """Настраивает и возвращает главный логгер приложения."""
     global _global_logger
     _global_logger = AppLogger(
         name=name,
@@ -344,19 +354,10 @@ def setup_logger(
 
 
 def get_logger(module_name: Optional[str] = None) -> AppLogger | ModuleLogger:
-    """
-    Возвращает логгер.
-    
-    Args:
-        module_name: Имя модуля (опционально)
-    
-    Returns:
-        Логгер приложения или модуля
-    """
+    """Возвращает логгер."""
     global _global_logger
     
     if _global_logger is None:
-        # Создаем логгер с настройками по умолчанию
         setup_logger()
     
     if module_name:
