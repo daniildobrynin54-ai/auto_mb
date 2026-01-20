@@ -27,7 +27,7 @@ class TelegramNotifier:
         chat_id: Optional[str] = None,
         thread_id: Optional[int] = None,
         enabled: bool = True,
-        proxy_manager=None,
+        proxy_manager=None,  # Оставляем для обратной совместимости, но не используем
         reply_monitor=None  # Unified handler вместо reply_monitor
     ):
         self.bot_token = bot_token
@@ -39,10 +39,9 @@ class TelegramNotifier:
         self._sent_cards = self._load_sent_cards()
         self.reply_monitor = reply_monitor  # Unified handler
         
+        # 🔧 ИСПРАВЛЕНО: НЕ используем прокси для Telegram
         self.proxies = None
-        if proxy_manager and proxy_manager.is_enabled():
-            self.proxies = proxy_manager.get_proxies()
-            logger.info(f"Telegram notifier использует прокси: {proxy_manager.get_info()}")
+        logger.info("Telegram notifier работает БЕЗ прокси (прямое подключение)")
     
     def _load_sent_cards(self) -> Dict[int, Dict[str, Any]]:
         try:
@@ -113,7 +112,8 @@ class TelegramNotifier:
             if not chat_id and self.thread_id:
                 data["message_thread_id"] = self.thread_id
             
-            response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
+            # 🔧 БЕЗ прокси
+            response = requests.post(url, json=data, timeout=10)
             
             if response.status_code == 200:
                 result = response.json().get('result', {})
@@ -151,7 +151,8 @@ class TelegramNotifier:
             if not chat_id and self.thread_id:
                 data["message_thread_id"] = self.thread_id
             
-            response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
+            # 🔧 БЕЗ прокси
+            response = requests.post(url, json=data, timeout=10)
             
             if response.status_code == 200:
                 result = response.json().get('result', {})
@@ -395,7 +396,8 @@ class TelegramNotifier:
         
         try:
             url = f"{self.api_url}/getMe"
-            response = requests.get(url, proxies=self.proxies, timeout=10)
+            # 🔧 БЕЗ прокси
+            response = requests.get(url, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -418,7 +420,7 @@ def create_telegram_notifier(
     chat_id: Optional[str] = None,
     thread_id: Optional[int] = None,
     enabled: bool = True,
-    proxy_manager=None,
+    proxy_manager=None,  # Игнорируем
     reply_monitor=None  # Unified handler
 ) -> TelegramNotifier:
     """Фабричная функция для создания Telegram notifier."""
@@ -427,7 +429,7 @@ def create_telegram_notifier(
         chat_id,
         thread_id,
         enabled,
-        proxy_manager,
+        None,  # Не передаем proxy_manager
         reply_monitor
     )
     

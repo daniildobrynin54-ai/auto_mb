@@ -19,18 +19,18 @@ class GoogleSheetsParser:
     """Парсер профилей из Google Sheets с двух страниц."""
     
     def __init__(self, proxy_manager=None):
+        # 🔧 ИСПРАВЛЕНО: НЕ используем прокси для Google Sheets
         self.proxies = None
-        if proxy_manager and proxy_manager.is_enabled():
-            self.proxies = proxy_manager.get_proxies()
+        logger.info("Google Sheets parser работает БЕЗ прокси (прямое подключение)")
     
     def fetch_sheet_data(self, url: str) -> Optional[str]:
         """Загружает CSV данные из Google Sheets."""
         try:
             logger.debug(f"Загрузка данных из Google Sheets...")
             
+            # 🔧 БЕЗ ПРОКСИ
             response = requests.get(
                 url,
-                proxies=self.proxies,
                 timeout=15
             )
             
@@ -437,6 +437,7 @@ def get_sheets_parser(proxy_manager=None) -> GoogleSheetsParser:
     global _sheets_parser
     
     if _sheets_parser is None:
-        _sheets_parser = GoogleSheetsParser(proxy_manager)
+        # 🔧 НЕ передаем proxy_manager
+        _sheets_parser = GoogleSheetsParser(None)
     
     return _sheets_parser

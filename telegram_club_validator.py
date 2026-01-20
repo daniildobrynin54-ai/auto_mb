@@ -23,22 +23,21 @@ class ClubValidator:
     ):
         """
         Args:
-            session: requests.Session для MangaBuff
+            session: requests.Session для MangaBuff (с прокси)
             bot_token: Токен Telegram бота
             required_club_slug: Slug клуба (например, 'klub-taro-2')
             telegram_chat_id: ID Telegram группы
-            proxy_manager: Менеджер прокси
+            proxy_manager: Менеджер прокси (только для MangaBuff)
         """
-        self.session = session
+        self.session = session  # 🔧 Используется только для MangaBuff
         self.bot_token = bot_token
         self.required_club_slug = required_club_slug
         self.telegram_chat_id = telegram_chat_id
         self.api_url = f"https://api.telegram.org/bot{bot_token}"
         
-        # Прокси для Telegram API
+        # 🔧 ИСПРАВЛЕНО: НЕ используем прокси для Telegram API
         self.proxies = None
-        if proxy_manager and proxy_manager.is_enabled():
-            self.proxies = proxy_manager.get_proxies()
+        logger.info("Club validator: прокси только для MangaBuff, Telegram API без прокси")
     
     def extract_club_slug_from_boost_url(self, boost_url: str) -> Optional[str]:
         """
@@ -74,6 +73,7 @@ class ClubValidator:
         
         try:
             logger.debug(f"Загрузка профиля пользователя {user_id}...")
+            # 🔧 ИСПОЛЬЗУЕМ SESSION (с прокси для MangaBuff)
             response = self.session.get(url, timeout=REQUEST_TIMEOUT)
             
             if response.status_code != 200:
@@ -161,10 +161,10 @@ class ClubValidator:
                 "user_id": telegram_id
             }
             
+            # 🔧 БЕЗ ПРОКСИ для Telegram API
             response = requests.get(
                 url,
                 params=params,
-                proxies=self.proxies,
                 timeout=10
             )
             
@@ -213,10 +213,10 @@ class ClubValidator:
             url = f"{self.api_url}/getChat"
             params = {"chat_id": self.telegram_chat_id}
             
+            # 🔧 БЕЗ ПРОКСИ
             response = requests.get(
                 url,
                 params=params,
-                proxies=self.proxies,
                 timeout=10
             )
             
@@ -281,11 +281,11 @@ def create_club_validator(
     Создает валидатор с автоматическим извлечением slug клуба из boost_url.
     
     Args:
-        session: requests.Session
+        session: requests.Session (с прокси для MangaBuff)
         bot_token: Telegram bot token
         boost_url: URL страницы буста (например, 'https://mangabuff.ru/clubs/klub-taro-2/boost')
         telegram_chat_id: ID Telegram группы
-        proxy_manager: Менеджер прокси
+        proxy_manager: Менеджер прокси (только для MangaBuff)
     
     Returns:
         ClubValidator или None при ошибке

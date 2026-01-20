@@ -31,7 +31,7 @@ class TelegramUnifiedHandler:
         chat_id: str,
         thread_id: Optional[int],
         on_replace_triggered: Optional[Callable] = None,
-        proxy_manager=None,
+        proxy_manager=None,  # Оставляем для обратной совместимости
         boost_url: Optional[str] = None,
         session=None
     ):
@@ -45,12 +45,14 @@ class TelegramUnifiedHandler:
         self.thread = None
         self.users_db = get_users_db()
         self.bot_message_ids = set()
-        self.sheets_parser = get_sheets_parser(proxy_manager)
+        
+        # 🔧 ИСПРАВЛЕНО: НЕ используем прокси для парсера Google Sheets
+        self.sheets_parser = get_sheets_parser(None)
         
         # 🔧 НОВОЕ: Временные состояния пользователей
         self.user_states = {}  # {chat_id: {'state': 'waiting_add', 'url': '...'}}
         
-        # Валидатор клуба
+        # Валидатор клуба (использует session с прокси для MangaBuff)
         self.validator = None
         if boost_url and session:
             self.validator = create_club_validator(
@@ -58,15 +60,14 @@ class TelegramUnifiedHandler:
                 bot_token=bot_token,
                 boost_url=boost_url,
                 telegram_chat_id=chat_id,
-                proxy_manager=proxy_manager
+                proxy_manager=proxy_manager  # Прокси только для MangaBuff
             )
             if self.validator:
                 logger.info("✅ Валидатор клуба инициализирован")
         
-        # Прокси
+        # 🔧 ИСПРАВЛЕНО: НЕ используем прокси для Telegram API
         self.proxies = None
-        if proxy_manager and proxy_manager.is_enabled():
-            self.proxies = proxy_manager.get_proxies()
+        logger.info("Telegram unified handler работает БЕЗ прокси (прямое подключение)")
         
         self._test_connection()
     
@@ -74,7 +75,8 @@ class TelegramUnifiedHandler:
         """Тестирует подключение."""
         try:
             url = f"{self.api_url}/getMe"
-            response = requests.get(url, proxies=self.proxies, timeout=10)
+            # 🔧 БЕЗ прокси
+            response = requests.get(url, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -114,7 +116,8 @@ class TelegramUnifiedHandler:
             if reply_markup:
                 data["reply_markup"] = json.dumps(reply_markup)
             
-            response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
+            # 🔧 БЕЗ прокси
+            response = requests.post(url, json=data, timeout=10)
             
             if response.status_code == 200:
                 logger.debug(f"Сообщение отправлено: {chat_id}")
@@ -141,7 +144,8 @@ class TelegramUnifiedHandler:
                 "show_alert": show_alert
             }
             
-            response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
+            # 🔧 БЕЗ прокси
+            response = requests.post(url, json=data, timeout=10)
             return response.status_code == 200
         except Exception as e:
             logger.error(f"Ошибка ответа на callback: {e}")
@@ -168,7 +172,8 @@ class TelegramUnifiedHandler:
             if reply_markup:
                 data["reply_markup"] = json.dumps(reply_markup)
             
-            response = requests.post(url, json=data, proxies=self.proxies, timeout=10)
+            # 🔧 БЕЗ прокси
+            response = requests.post(url, json=data, timeout=10)
             return response.status_code == 200
         except Exception as e:
             logger.error(f"Ошибка редактирования сообщения: {e}")
@@ -749,10 +754,10 @@ class TelegramUnifiedHandler:
                 "allowed_updates": ["message", "callback_query"]
             }
             
+            # 🔧 БЕЗ прокси
             response = requests.get(
                 url,
                 params=params,
-                proxies=self.proxies,
                 timeout=35
             )
             
