@@ -1,4 +1,4 @@
-"""Парсер данных профилей из Google Sheets."""
+"""Парсер данных профилей из Google Sheets с автоматическим поиском столбца."""
 
 import re
 import requests
@@ -69,16 +69,39 @@ class GoogleSheetsParser:
         
         # Первая строка - заголовки
         headers_line = lines[0]
-        # Убираем кавычки и разделяем
         headers = [h.strip('"') for h in headers_line.split(',')]
         
         logger.debug(f"Заголовки: {headers}")
         
-        # Ищем индекс столбца "Ник"
-        try:
-            name_index = headers.index('Ник')
-        except ValueError:
-            logger.error("Столбец 'Ник' не найден в таблице")
+        # 🔧 ИСПРАВЛЕНО: Автоматический поиск столбца со ссылками
+        link_column_index = None
+        
+        # Сначала пробуем найти по известным названиям
+        possible_names = ['ссылка бафф', 'Ник', 'ник бафф', 'link', 'profile']
+        for name in possible_names:
+            try:
+                link_column_index = headers.index(name)
+                logger.info(f"Найден столбец '{name}' (индекс {link_column_index})")
+                break
+            except ValueError:
+                continue
+        
+        # Если не нашли по названию - ищем автоматически по содержимому
+        if link_column_index is None:
+            logger.info("Столбец не найден по названию, ищем по содержимому...")
+            if len(lines) > 1:
+                first_data_line = lines[1]
+                values = self._parse_csv_line(first_data_line)
+                
+                for i, value in enumerate(values):
+                    if 'HYPERLINK' in value and '/users/' in value:
+                        link_column_index = i
+                        logger.info(f"✅ Найден столбец со ссылками автоматически (индекс {i})")
+                        break
+        
+        if link_column_index is None:
+            logger.error("❌ Столбец со ссылками на пользователей не найден в таблице")
+            logger.error(f"Доступные заголовки: {headers}")
             return None
         
         # Ищем пользователя в строках
@@ -86,15 +109,15 @@ class GoogleSheetsParser:
             # Разделяем CSV с учетом кавычек
             values = self._parse_csv_line(line)
             
-            if len(values) <= name_index:
+            if len(values) <= link_column_index:
                 continue
             
-            # В столбце "Ник" должна быть ссылка типа:
+            # В столбце со ссылками должна быть формула HYPERLINK:
             # =HYPERLINK("https://mangabuff.ru/users/258280";"LTM I PoliS")
-            name_cell = values[name_index]
+            link_cell = values[link_column_index]
             
             # Извлекаем user_id из HYPERLINK
-            match = re.search(r'/users/(\d+)', name_cell)
+            match = re.search(r'/users/(\d+)', link_cell)
             if not match:
                 continue
             
@@ -103,8 +126,8 @@ class GoogleSheetsParser:
             if found_user_id == user_id:
                 logger.info(f"✅ Найден профиль для {user_id}")
                 
-                # Извлекаем название (после точки с запятой)
-                name_match = re.search(r';"([^"]+)"', name_cell)
+                # Извлекаем название (после точки с запятой в HYPERLINK)
+                name_match = re.search(r';"([^"]+)"', link_cell)
                 username = name_match.group(1) if name_match else f"User{user_id}"
                 
                 # Создаем словарь профиля
@@ -166,17 +189,27 @@ class GoogleSheetsParser:
         
         # Добавляем остальные поля из таблицы
         # Пропускаем служебные поля
-        skip_fields = {'user_id', 'username', 'Ник'}
+        skip_fields = {
+            'user_id', 
+            'username', 
+            'Ник', 
+            'ссылка бафф',  # 🔧 ДОБАВЛЕНО: пропускаем столбец со ссылками
+            'ник бафф'      # Это уже отображено как username
+        }
         
         for key, value in profile.items():
             if key in skip_fields or not value:
+                continue
+            
+            # Пропускаем поля которые содержат только служебную информацию
+            if key.lower().startswith('id ') or key.lower() == 'id':
                 continue
             
             # Форматируем название поля
             field_name = key.strip()
             field_value = str(value).strip()
             
-            if field_value:
+            if field_value and field_value != '0':  # Пропускаем пустые значения
                 lines.append(f"<b>{field_name}:</b> {field_value}")
         
         # Добавляем ссылку на профиль
