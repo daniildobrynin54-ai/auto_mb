@@ -380,71 +380,86 @@ class GoogleSheetsParser:
         return None
     
     def parse_profile_contribution(self, user_id: str) -> Optional[Dict[str, Any]]:
-        """
-        🔧 НОВОЕ: Парсит вклад из третьей страницы.
-        
-        Args:
-            user_id: ID пользователя MangaBuff
-        
-        Returns:
-            Словарь с вкладом или None
-        """
+    
         csv_data = self.fetch_sheet_data(SHEETS_URL_CONTRIBUTION)
-        
+    
         if not csv_data:
             logger.warning("Не удалось загрузить данные вклада из таблицы")
             return None
-        
+    
         logger.debug(f"Поиск вклада для user_id: {user_id}")
-        
+    
         lines = csv_data.strip().split('\n')
-        
+    
         if len(lines) < 2:
             logger.warning("Таблица вклада пустая")
             return None
-        
+    
         headers_line = lines[0]
         headers = [h.strip('"') for h in headers_line.split(',')]
-        
+    
         logger.debug(f"Заголовки вклада: {headers}")
-        
-        # 🔧 ИСПРАВЛЕНО: Ссылки в столбце F (индекс 5)
-        # Столбцы: A B C D E F
-        # Индексы:  0 1 2 3 4 5
+    
+        # Ссылки в столбце F (индекс 5)
         link_column_index = 5
         logger.info(f"Используем столбец F (индекс 5) для ссылок на странице вклада")
-        
-        # 🔧 ИСПРАВЛЕНО: Вклад в столбце D (индекс 3)
+    
+        # Вклад в столбце D (индекс 3)
         contribution_column_index = 3
-        logger.info(f"Вклад в столбце D (индекс 3)")
-        
+        # 🔧 НОВОЕ: Начало в столбце X (нужно найти)
+        start_column_index = None
+        # 🔧 НОВОЕ: Конец в столбце I (индекс 8)
+        end_column_index = 8
+    
+        # Ищем столбец "Начало" или "X"
+        for i, header in enumerate(headers):
+            header_lower = header.lower().strip()
+            if header_lower in ['начало', 'start', 'x']:
+                start_column_index = i
+                logger.info(f"Найден столбец 'Начало': индекс {i}")
+                break
+    
         # Ищем пользователя
         for line in lines[1:]:
             values = self._parse_csv_line(line)
-            
+        
             if len(values) <= link_column_index:
                 continue
-            
+        
             link_cell = values[link_column_index]
             found_user_id = self._extract_user_id_from_hyperlink(link_cell)
-            
+        
             if not found_user_id or found_user_id != user_id:
                 continue
-            
+        
             logger.info(f"✅ Найден вклад для {user_id}")
-            
+        
             contribution_data = {}
-            
+        
             # Извлекаем вклад из столбца D
             if contribution_column_index < len(values):
                 contribution_value = self._clean_value(values[contribution_column_index])
-                
+            
                 if contribution_value and contribution_value != '0':
                     contribution_data['Вклад'] = contribution_value
                     logger.debug(f"Найден вклад: {contribution_value}")
-            
-            return contribution_data
         
+            # 🔧 НОВОЕ: Извлекаем начало
+            if start_column_index is not None and start_column_index < len(values):
+                start_value = self._clean_value(values[start_column_index])
+                if start_value and start_value != '0':
+                    contribution_data['Начало'] = start_value
+                    logger.debug(f"Найдено начало: {start_value}")
+        
+            # 🔧 НОВОЕ: Извлекаем конец из столбца I
+            if end_column_index < len(values):
+                end_value = self._clean_value(values[end_column_index])
+                if end_value and end_value != '0':
+                    contribution_data['Конец'] = end_value
+                    logger.debug(f"Найден конец: {end_value}")
+        
+            return contribution_data
+    
         logger.warning(f"Вклад для {user_id} не найден")
         return None
     
@@ -487,25 +502,25 @@ class GoogleSheetsParser:
     
     def format_profile_message(self, profile: Dict[str, Any]) -> str:
         """
-        🔧 ОБНОВЛЕНО: Форматирует профиль с инвентарём отдельной строкой.
-        
+        🔧 ОБНОВЛЕНО: Форматирует профиль с прогресс-баром вклада.
+    
         Args:
             profile: Словарь с данными профиля
-        
+    
         Returns:
             HTML-форматированное сообщение
         """
         username = profile.get('username', 'Неизвестно')
         user_id = profile.get('user_id', '?')
-        
+    
         # 🔧 ИСПРАВЛЕНО: Инвентарь теперь отдельная строка
         inventory_value = profile.get('Инвентарь')
-        
+    
         # 🔧 ИСПРАВЛЕНО: Заголовок БЕЗ инвентаря
         lines = [
             f"<b>👤 Профиль: {username}</b>\n"
         ]
-        
+    
         # Поля которые нужно пропустить
         skip_fields = {
             'user_id',
@@ -520,10 +535,14 @@ class GoogleSheetsParser:
             'telegram_username',
             'Профиль',
             'профиль',
-            'Инвентарь',  # 🔧 НОВОЕ: Пропускаем здесь, добавим отдельно
+            'Инвентарь',
             '0',
             'инвентарь',
-            'inventory'
+            'inventory',
+            'Начало',  # 🔧 НОВОЕ: Пропускаем служебные поля прогресс-бара
+            'начало',
+            'Конец',
+            'конец'
         }
         
         # Порядок отображения полей
@@ -537,12 +556,16 @@ class GoogleSheetsParser:
             'посл.',
             'Баланс',
             'баланс',
-            'Вклад',  # 🔧 НОВОЕ: Вклад в общем порядке
+            'Вклад',  # 🔧 НОВОЕ: Вклад обрабатывается отдельно с прогресс-баром
             'вклад'
         ]
         
         # Сначала выводим поля в нужном порядке
         added_fields = set()
+        contribution_value = None
+        contribution_start = None
+        contribution_end = None
+        
         for field_name in field_order:
             # Проверяем и обычное имя и lowercase
             for key in profile.keys():
@@ -561,8 +584,58 @@ class GoogleSheetsParser:
                             # 🔧 ИСПРАВЛЕНО: Убираем ": ?" из значений
                             value = value.replace(': ?', '').strip()
                             
-                            lines.append(f"<b>{display_name}:</b> {value}")
+                            # 🔧 НОВОЕ: Для вклада сохраняем значение для прогресс-бара
+                            if field_name.lower() == 'вклад':
+                                try:
+                                    contribution_value = int(value)
+                                except ValueError:
+                                    contribution_value = None
+                            else:
+                                lines.append(f"<b>{display_name}:</b> {value}")
+                            
                             added_fields.add(key)
+        
+        # 🔧 НОВОЕ: Получаем значения начала и конца для прогресс-бара
+        for key, value in profile.items():
+            key_lower = key.lower().strip()
+            if key_lower in ['начало', 'start', 'x']:
+                try:
+                    contribution_start = int(str(value).strip())
+                except (ValueError, AttributeError):
+                    pass
+            elif key_lower in ['конец', 'end', 'i']:
+                try:
+                    contribution_end = int(str(value).strip())
+                except (ValueError, AttributeError):
+                    pass
+        
+        # 🔧 НОВОЕ: Добавляем вклад с прогресс-баром
+        if contribution_value is not None:
+            contribution_line = f"<b>Вклад:</b> {contribution_value}"
+            
+            # Если есть данные для прогресс-бара
+            if contribution_start is not None and contribution_end is not None:
+                # Вычисляем процент и оставшееся
+                total = contribution_end - contribution_start
+                current_progress = contribution_value - contribution_start
+                remaining = contribution_end - contribution_value
+                
+                if total > 0:
+                    percentage = min(100, max(0, (current_progress / total) * 100))
+                    
+                    # Создаем прогресс-бар (15 блоков)
+                    filled_blocks = int((percentage / 100) * 15)
+                    empty_blocks = 15 - filled_blocks
+                    
+                    # Используем Unicode блоки для прогресс-бара
+                    progress_bar = '█' * filled_blocks + '░' * empty_blocks
+                    
+                    contribution_line += f" (Осталось: {remaining})\n"
+                    contribution_line += f"<code>[{progress_bar}] {percentage:.1f}%</code>"
+                else:
+                    contribution_line += f" (Осталось: {remaining})"
+            
+            lines.append(contribution_line)
         
         # 🔧 НОВОЕ: Добавляем инвентарь ОТДЕЛЬНОЙ строкой
         if inventory_value:
