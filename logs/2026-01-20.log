@@ -76,3 +76,341 @@
 [2026-01-20 10:51:13] INFO     | MangaBuff > ------------------------------------------------------------
 [2026-01-20 10:51:13] INFO     | MangaBuff >   📊 РЕЖИМ ОЖИДАНИЯ - Статистика
 [2026-01-20 10:51:13] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 11:26:37] INFO     | logger > === Log rotation: new file created at 2026-01-20 11:26:37 ===
+[2026-01-20 11:26:37] INFO     | logger > === Log rotation: new file created at 2026-01-20 11:26:37 ===
+[2026-01-20 11:26:37] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:26:37] INFO     | MangaBuff >   ЗАПУСК ПРИЛОЖЕНИЯ MANGABUFF
+[2026-01-20 11:26:37] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:26:37] INFO     | MangaBuff > Версия: 2.6 (добавлена валидация клуба)
+[2026-01-20 11:26:37] INFO     | MangaBuff > Время запуска: 2026-01-20 11:26:37
+[2026-01-20 11:26:37] INFO     | MangaBuff.proxy_manager > Прочитан прокси из файла: 62.233.39.89:1080@Pr...
+[2026-01-20 11:26:37] INFO     | MangaBuff.proxy_manager > Формат host:port@user:pass обнаружен
+[2026-01-20 11:26:37] INFO     | MangaBuff.proxy_manager > Host: 62.233.39.89, Port: 1080, User: PrsRUS1HZZ1GZ
+[2026-01-20 11:26:37] INFO     | MangaBuff.proxy_manager > 🔄 Получение текущего IP...
+[2026-01-20 11:26:37] INFO     | MangaBuff.proxy_manager > 🌐 Текущий IP: 79.132.21.234
+[2026-01-20 11:26:37] INFO     | MangaBuff.proxy_manager > 🔄 Обновление IP в прокси через API...
+[2026-01-20 11:26:38] WARNING  | MangaBuff.proxy_manager > ⚠️ Не удалось обновить IP (код: 404)
+[2026-01-20 11:26:38] INFO     | MangaBuff.proxy_manager > Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:26:38] INFO     | MangaBuff.auth > Попытка входа для email: deb***@gmail.com
+[2026-01-20 11:26:38] INFO     | MangaBuff.auth > Прокси настроен: Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:26:39] INFO     | MangaBuff.auth > Авторизация успешна
+[2026-01-20 11:26:39] INFO     | MangaBuff.utils > Авторизация успешна
+
+[2026-01-20 11:26:39] INFO     | MangaBuff.telegram_users_db > Загружено 1 пользователей
+[2026-01-20 11:26:39] INFO     | MangaBuff.telegram_users_db > Session установлена для парсинга никнеймов
+[2026-01-20 11:26:39] INFO     | MangaBuff.main > ✅ Session установлена в БД для парсинга nicknames
+[2026-01-20 11:26:39] INFO     | MangaBuff.club_validator > Создан валидатор для клуба: klub-taro-2
+[2026-01-20 11:26:39] INFO     | MangaBuff.telegram_unified > ✅ Валидатор клуба инициализирован
+[2026-01-20 11:26:40] INFO     | MangaBuff.telegram_unified > ✅ Telegram бот подключен: @fsdfewfewsfd_bot
+[2026-01-20 11:26:40] INFO     | MangaBuff.telegram_unified > 🤖 Telegram unified handler запущен
+[2026-01-20 11:26:40] INFO     | MangaBuff.telegram_unified > ✅ Unified handler запущен
+[2026-01-20 11:26:40] INFO     | MangaBuff.telegram_unified > 👁️  Мониторинг триггеров: смена карты, смена, заменить, замени, change card, replace
+[2026-01-20 11:26:40] INFO     | MangaBuff.telegram_unified > 📱 Отправьте /start боту для регистрации
+[2026-01-20 11:26:40] INFO     | MangaBuff.telegram_unified > 🔐 Валидация клуба: klub-taro-2
+[2026-01-20 11:26:40] INFO     | MangaBuff.telegram_notifier > Telegram notifier использует прокси: Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:26:41] INFO     | MangaBuff.telegram_unified > 📩 Команда от amaterasu (7991034391): /profile
+[2026-01-20 11:26:41] INFO     | MangaBuff.telegram_notifier > Telegram bot connected: @fsdfewfewsfd_bot
+[2026-01-20 11:26:41] INFO     | MangaBuff.utils > Монитор истории запущен (проверка каждые 60с)
+
+[2026-01-20 11:26:42] INFO     | MangaBuff.telegram_unified > Показан список профилей для 7991034391
+[2026-01-20 11:26:43] INFO     | MangaBuff.utils > Всего загружено: 1072 карточек
+[2026-01-20 11:26:43] INFO     | MangaBuff.inventory > 🔄 Синхронизация инвентаря с пропарсенными данными...
+[2026-01-20 11:26:43] INFO     | MangaBuff.inventory > Пропарсенный инвентарь пустой, синхронизация не требуется
+[2026-01-20 11:26:43] INFO     | MangaBuff.utils > Синхронизация завершена
+
+[2026-01-20 11:26:43] INFO     | MangaBuff.boost > 📝 Card ID: 291990
+[2026-01-20 11:26:43] INFO     | MangaBuff.boost > 📦 Получение информации из инвентаря владельца...
+[2026-01-20 11:26:43] INFO     | MangaBuff.boost > 🔍 Поиск информации о карте 291990 через инвентарь владельца...
+[2026-01-20 11:26:44] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: profile:309607
+[2026-01-20 11:26:44] INFO     | MangaBuff.telegram_unified > 📊 Загрузка профиля 309607 для 7991034391
+[2026-01-20 11:26:44] INFO     | MangaBuff.boost > ✅ Найдено: Лианна | Ранг: E | Instance: 386660022
+[2026-01-20 11:26:45] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:26:45] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 309607
+[2026-01-20 11:26:46] INFO     | MangaBuff.boost > 📊 Владельцев: 286 | Желающих: 109
+[2026-01-20 11:26:46] INFO     | MangaBuff.boost > Участников клуба с этой картой не найдено
+[2026-01-20 11:26:46] INFO     | MangaBuff.boost > ℹ️  Участников клуба с картой не найдено
+[2026-01-20 11:26:46] INFO     | MangaBuff.boost > ✅ Информация о карте собрана: Лианна (Ранг: E)
+[2026-01-20 11:26:46] INFO     | MangaBuff.utils > Карточка для вклада:
+[2026-01-20 11:26:46] INFO     | MangaBuff.telegram_notifier > Карта Лианна (ID: 291990) уже отправлялась сегодня
+[2026-01-20 11:26:46] WARNING  | MangaBuff.utils > Не удалось отправить уведомление
+[2026-01-20 11:26:46] INFO     | MangaBuff.monitor > 🔄 Запущен мониторинг страницы: https://mangabuff.ru/clubs/klub-taro-2/boost
+[2026-01-20 11:26:46] INFO     | MangaBuff.monitor > Проверка каждые 2 секунд...
+[2026-01-20 11:26:46] INFO     | MangaBuff.monitor > Отслеживание: буст + смена карты в клубе
+[2026-01-20 11:26:46] INFO     | MangaBuff.monitor > 📱 Telegram уведомления: ВКЛЮЧЕНЫ
+[2026-01-20 11:26:46] INFO     | MangaBuff.monitor > Нажмите Ctrl+C для остановки
+[2026-01-20 11:26:47] INFO     | MangaBuff.telegram_unified > ✅ Профиль 309607 отправлен
+[2026-01-20 11:26:47] WARNING  | MangaBuff.utils > 
+⛔ Лимит вкладов достигнут!
+[2026-01-20 11:26:50] INFO     | MangaBuff.utils > ✅ Обмены отменены
+[2026-01-20 11:26:50] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:26:50] INFO     | MangaBuff >   ⏸️  РЕЖИМ ОЖИДАНИЯ
+[2026-01-20 11:26:50] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:27:09] INFO     | MangaBuff.telegram_unified > 📩 Команда от amaterasu (7991034391): /profile
+[2026-01-20 11:27:10] INFO     | MangaBuff.telegram_unified > Показан список профилей для 7991034391
+[2026-01-20 11:27:11] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: profile:309607
+[2026-01-20 11:27:11] INFO     | MangaBuff.telegram_unified > 📊 Загрузка профиля 309607 для 7991034391
+[2026-01-20 11:27:12] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:27:12] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 309607
+[2026-01-20 11:27:14] INFO     | MangaBuff.telegram_unified > ✅ Профиль 309607 отправлен
+[2026-01-20 11:27:17] WARNING  | MangaBuff > 
+Приложение прервано пользователем
+[2026-01-20 11:27:17] INFO     | MangaBuff.telegram_unified > 🛑 Остановка unified handler...
+[2026-01-20 11:27:22] INFO     | MangaBuff.telegram_unified > ✅ Unified handler остановлен
+[2026-01-20 11:35:05] INFO     | logger > === Log rotation: new file created at 2026-01-20 11:35:05 ===
+[2026-01-20 11:35:05] INFO     | logger > === Log rotation: new file created at 2026-01-20 11:35:05 ===
+[2026-01-20 11:35:05] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:35:05] INFO     | MangaBuff >   ЗАПУСК ПРИЛОЖЕНИЯ MANGABUFF
+[2026-01-20 11:35:05] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:35:05] INFO     | MangaBuff > Версия: 2.6 (добавлена валидация клуба)
+[2026-01-20 11:35:05] INFO     | MangaBuff > Время запуска: 2026-01-20 11:35:05
+[2026-01-20 11:35:05] INFO     | MangaBuff.proxy_manager > Прочитан прокси из файла: 62.233.39.89:1080@Pr...
+[2026-01-20 11:35:05] INFO     | MangaBuff.proxy_manager > Формат host:port@user:pass обнаружен
+[2026-01-20 11:35:05] INFO     | MangaBuff.proxy_manager > Host: 62.233.39.89, Port: 1080, User: PrsRUS1HZZ1GZ
+[2026-01-20 11:35:05] INFO     | MangaBuff.proxy_manager > 🔄 Получение текущего IP...
+[2026-01-20 11:35:06] INFO     | MangaBuff.proxy_manager > 🌐 Текущий IP: 79.132.21.234
+[2026-01-20 11:35:06] INFO     | MangaBuff.proxy_manager > 🔄 Обновление IP в прокси через API...
+[2026-01-20 11:35:06] WARNING  | MangaBuff.proxy_manager > ⚠️ Не удалось обновить IP (код: 404)
+[2026-01-20 11:35:06] INFO     | MangaBuff.proxy_manager > Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:35:06] INFO     | MangaBuff.auth > Попытка входа для email: deb***@gmail.com
+[2026-01-20 11:35:06] INFO     | MangaBuff.auth > Прокси настроен: Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:35:08] INFO     | MangaBuff.auth > Авторизация успешна
+[2026-01-20 11:35:08] INFO     | MangaBuff.utils > Авторизация успешна
+
+[2026-01-20 11:35:08] INFO     | MangaBuff.telegram_users_db > Загружено 1 пользователей
+[2026-01-20 11:35:08] INFO     | MangaBuff.telegram_users_db > Session установлена для парсинга никнеймов
+[2026-01-20 11:35:08] INFO     | MangaBuff.main > ✅ Session установлена в БД для парсинга nicknames
+[2026-01-20 11:35:08] INFO     | MangaBuff.club_validator > Создан валидатор для клуба: klub-taro-2
+[2026-01-20 11:35:08] INFO     | MangaBuff.telegram_unified > ✅ Валидатор клуба инициализирован
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_unified > ✅ Telegram бот подключен: @fsdfewfewsfd_bot
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_unified > 🤖 Telegram unified handler запущен
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_unified > ✅ Unified handler запущен
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_unified > 👁️  Мониторинг триггеров: смена карты, смена, заменить, замени, change card, replace
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_unified > 📱 Отправьте /start боту для регистрации
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_unified > 🔐 Валидация клуба: klub-taro-2
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_notifier > Telegram notifier использует прокси: Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:35:09] INFO     | MangaBuff.telegram_notifier > Telegram bot connected: @fsdfewfewsfd_bot
+[2026-01-20 11:35:10] INFO     | MangaBuff.utils > Монитор истории запущен (проверка каждые 60с)
+
+[2026-01-20 11:35:11] INFO     | MangaBuff.utils > Всего загружено: 1072 карточек
+[2026-01-20 11:35:11] INFO     | MangaBuff.inventory > 🔄 Синхронизация инвентаря с пропарсенными данными...
+[2026-01-20 11:35:11] INFO     | MangaBuff.inventory > Пропарсенный инвентарь пустой, синхронизация не требуется
+[2026-01-20 11:35:11] INFO     | MangaBuff.utils > Синхронизация завершена
+
+[2026-01-20 11:35:12] INFO     | MangaBuff.boost > 📝 Card ID: 291990
+[2026-01-20 11:35:12] INFO     | MangaBuff.boost > 📦 Получение информации из инвентаря владельца...
+[2026-01-20 11:35:12] INFO     | MangaBuff.boost > 🔍 Поиск информации о карте 291990 через инвентарь владельца...
+[2026-01-20 11:35:13] INFO     | MangaBuff.boost > ✅ Найдено: Лианна | Ранг: E | Instance: 386660022
+[2026-01-20 11:35:15] INFO     | MangaBuff.boost > 📊 Владельцев: 286 | Желающих: 109
+[2026-01-20 11:35:15] INFO     | MangaBuff.boost > Участников клуба с этой картой не найдено
+[2026-01-20 11:35:15] INFO     | MangaBuff.boost > ℹ️  Участников клуба с картой не найдено
+[2026-01-20 11:35:15] INFO     | MangaBuff.boost > ✅ Информация о карте собрана: Лианна (Ранг: E)
+[2026-01-20 11:35:15] INFO     | MangaBuff.utils > Карточка для вклада:
+[2026-01-20 11:35:15] INFO     | MangaBuff.telegram_notifier > Карта Лианна (ID: 291990) уже отправлялась сегодня
+[2026-01-20 11:35:15] WARNING  | MangaBuff.utils > Не удалось отправить уведомление
+[2026-01-20 11:35:15] INFO     | MangaBuff.monitor > 🔄 Запущен мониторинг страницы: https://mangabuff.ru/clubs/klub-taro-2/boost
+[2026-01-20 11:35:15] INFO     | MangaBuff.monitor > Проверка каждые 2 секунд...
+[2026-01-20 11:35:15] INFO     | MangaBuff.monitor > Отслеживание: буст + смена карты в клубе
+[2026-01-20 11:35:15] INFO     | MangaBuff.monitor > 📱 Telegram уведомления: ВКЛЮЧЕНЫ
+[2026-01-20 11:35:15] INFO     | MangaBuff.monitor > Нажмите Ctrl+C для остановки
+[2026-01-20 11:35:16] WARNING  | MangaBuff.utils > 
+⛔ Лимит вкладов достигнут!
+[2026-01-20 11:35:17] INFO     | MangaBuff.telegram_unified > 📩 Команда от amaterasu (7991034391): /profile
+[2026-01-20 11:35:17] INFO     | MangaBuff.telegram_unified > Показан список профилей для 7991034391
+[2026-01-20 11:35:18] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: profile:309607
+[2026-01-20 11:35:18] INFO     | MangaBuff.telegram_unified > 📊 Загрузка профиля 309607 для 7991034391
+[2026-01-20 11:35:19] INFO     | MangaBuff.utils > ✅ Обмены отменены
+[2026-01-20 11:35:19] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:35:19] INFO     | MangaBuff >   ⏸️  РЕЖИМ ОЖИДАНИЯ
+[2026-01-20 11:35:19] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:35:20] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:35:20] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 309607
+[2026-01-20 11:35:22] ERROR    | MangaBuff.google_sheets > ❌ Столбец со ссылками не найден в таблице баланса
+[2026-01-20 11:35:22] WARNING  | MangaBuff.google_sheets > Данные баланса не найдены для 309607, используем только основные
+[2026-01-20 11:35:23] INFO     | MangaBuff.telegram_unified > ✅ Профиль 309607 отправлен
+[2026-01-20 11:40:34] INFO     | logger > === Log rotation: new file created at 2026-01-20 11:40:34 ===
+[2026-01-20 11:40:34] INFO     | logger > === Log rotation: new file created at 2026-01-20 11:40:34 ===
+[2026-01-20 11:40:34] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:40:34] INFO     | MangaBuff >   ЗАПУСК ПРИЛОЖЕНИЯ MANGABUFF
+[2026-01-20 11:40:34] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:40:34] INFO     | MangaBuff > Версия: 2.6 (добавлена валидация клуба)
+[2026-01-20 11:40:34] INFO     | MangaBuff > Время запуска: 2026-01-20 11:40:34
+[2026-01-20 11:40:34] INFO     | MangaBuff.proxy_manager > Прочитан прокси из файла: 62.233.39.89:1080@Pr...
+[2026-01-20 11:40:34] INFO     | MangaBuff.proxy_manager > Формат host:port@user:pass обнаружен
+[2026-01-20 11:40:34] INFO     | MangaBuff.proxy_manager > Host: 62.233.39.89, Port: 1080, User: PrsRUS1HZZ1GZ
+[2026-01-20 11:40:34] INFO     | MangaBuff.proxy_manager > 🔄 Получение текущего IP...
+[2026-01-20 11:40:34] INFO     | MangaBuff.proxy_manager > 🌐 Текущий IP: 79.132.21.234
+[2026-01-20 11:40:34] INFO     | MangaBuff.proxy_manager > 🔄 Обновление IP в прокси через API...
+[2026-01-20 11:40:35] WARNING  | MangaBuff.proxy_manager > ⚠️ Не удалось обновить IP (код: 404)
+[2026-01-20 11:40:35] INFO     | MangaBuff.proxy_manager > Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:40:35] INFO     | MangaBuff.auth > Попытка входа для email: deb***@gmail.com
+[2026-01-20 11:40:35] INFO     | MangaBuff.auth > Прокси настроен: Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:40:44] INFO     | MangaBuff.auth > Авторизация успешна
+[2026-01-20 11:40:44] INFO     | MangaBuff.utils > Авторизация успешна
+
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_users_db > Загружено 1 пользователей
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_users_db > Session установлена для парсинга никнеймов
+[2026-01-20 11:40:44] INFO     | MangaBuff.main > ✅ Session установлена в БД для парсинга nicknames
+[2026-01-20 11:40:44] INFO     | MangaBuff.club_validator > Создан валидатор для клуба: klub-taro-2
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_unified > ✅ Валидатор клуба инициализирован
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_unified > ✅ Telegram бот подключен: @fsdfewfewsfd_bot
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_unified > 🤖 Telegram unified handler запущен
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_unified > ✅ Unified handler запущен
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_unified > 👁️  Мониторинг триггеров: смена карты, смена, заменить, замени, change card, replace
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_unified > 📱 Отправьте /start боту для регистрации
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_unified > 🔐 Валидация клуба: klub-taro-2
+[2026-01-20 11:40:44] INFO     | MangaBuff.telegram_notifier > Telegram notifier использует прокси: Proxy: socks5://PrsRUS1HZZ1GZ:***@62.233.39.89:1080
+[2026-01-20 11:40:45] INFO     | MangaBuff.telegram_notifier > Telegram bot connected: @fsdfewfewsfd_bot
+[2026-01-20 11:40:45] INFO     | MangaBuff.telegram_unified > 📩 Команда от amaterasu (7991034391): /profile
+[2026-01-20 11:40:46] INFO     | MangaBuff.utils > Монитор истории запущен (проверка каждые 60с)
+
+[2026-01-20 11:40:46] INFO     | MangaBuff.telegram_unified > Показан список профилей для 7991034391
+[2026-01-20 11:40:47] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: profile:309607
+[2026-01-20 11:40:47] INFO     | MangaBuff.telegram_unified > 📊 Загрузка профиля 309607 для 7991034391
+[2026-01-20 11:40:47] INFO     | MangaBuff.utils > Всего загружено: 1072 карточек
+[2026-01-20 11:40:47] INFO     | MangaBuff.inventory > 🔄 Синхронизация инвентаря с пропарсенными данными...
+[2026-01-20 11:40:47] INFO     | MangaBuff.inventory > Пропарсенный инвентарь пустой, синхронизация не требуется
+[2026-01-20 11:40:47] INFO     | MangaBuff.utils > Синхронизация завершена
+
+[2026-01-20 11:40:48] INFO     | MangaBuff.boost > 📝 Card ID: 291990
+[2026-01-20 11:40:48] INFO     | MangaBuff.boost > 📦 Получение информации из инвентаря владельца...
+[2026-01-20 11:40:48] INFO     | MangaBuff.boost > 🔍 Поиск информации о карте 291990 через инвентарь владельца...
+[2026-01-20 11:40:48] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:40:48] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 309607
+[2026-01-20 11:40:48] ERROR    | MangaBuff.google_sheets > Ошибка загрузки Google Sheets: SOCKSHTTPSConnectionPool(host='docs.google.com', port=443): Max retries exceeded with url: /spreadsheets/d/1sYvrBU9BPhcoxTnNJfx8TOutxwFrSiRm2mw_8s6rdZM/gviz/tq?tqx=out:csv&gid=846561775 (Caused by NewConnectionError("SOCKSHTTPSConnection(host='docs.google.com', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:48] WARNING  | MangaBuff.google_sheets > Не удалось загрузить данные баланса из таблицы
+[2026-01-20 11:40:48] WARNING  | MangaBuff.google_sheets > Данные баланса не найдены для 309607, используем только основные
+[2026-01-20 11:40:48] ERROR    | MangaBuff.telegram_unified > Ошибка ответа на callback: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/answerCallbackQuery (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:49] ERROR    | MangaBuff.telegram_unified > Ошибка отправки сообщения: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/sendMessage (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:49] INFO     | MangaBuff.telegram_unified > ✅ Профиль 309607 отправлен
+[2026-01-20 11:40:49] INFO     | MangaBuff.boost > ✅ Найдено: Лианна | Ранг: E | Instance: 386660022
+[2026-01-20 11:40:49] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:49] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:49] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:49] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:49] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:50] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:50] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:50] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:50] INFO     | MangaBuff.boost > 📊 Владельцев: 286 | Желающих: 108
+[2026-01-20 11:40:50] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:50] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:51] INFO     | MangaBuff.boost > Участников клуба с этой картой не найдено
+[2026-01-20 11:40:51] INFO     | MangaBuff.boost > ℹ️  Участников клуба с картой не найдено
+[2026-01-20 11:40:51] INFO     | MangaBuff.boost > ✅ Информация о карте собрана: Лианна (Ранг: E)
+[2026-01-20 11:40:51] INFO     | MangaBuff.utils > Карточка для вклада:
+[2026-01-20 11:40:51] INFO     | MangaBuff.telegram_notifier > Карта Лианна (ID: 291990) уже отправлялась сегодня
+[2026-01-20 11:40:51] WARNING  | MangaBuff.utils > Не удалось отправить уведомление
+[2026-01-20 11:40:51] INFO     | MangaBuff.monitor > 🔄 Запущен мониторинг страницы: https://mangabuff.ru/clubs/klub-taro-2/boost
+[2026-01-20 11:40:51] INFO     | MangaBuff.monitor > Проверка каждые 2 секунд...
+[2026-01-20 11:40:51] INFO     | MangaBuff.monitor > Отслеживание: буст + смена карты в клубе
+[2026-01-20 11:40:51] INFO     | MangaBuff.monitor > 📱 Telegram уведомления: ВКЛЮЧЕНЫ
+[2026-01-20 11:40:51] INFO     | MangaBuff.monitor > Нажмите Ctrl+C для остановки
+[2026-01-20 11:40:51] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:51] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:52] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:52] WARNING  | MangaBuff.utils > 
+⛔ Лимит вкладов достигнут!
+[2026-01-20 11:40:52] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:52] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:52] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:54] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:54] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:54] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:54] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:54] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:54] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:54] INFO     | MangaBuff.utils > ✅ Обмены отменены
+[2026-01-20 11:40:54] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:40:54] INFO     | MangaBuff >   ⏸️  РЕЖИМ ОЖИДАНИЯ
+[2026-01-20 11:40:54] INFO     | MangaBuff > ============================================================
+[2026-01-20 11:40:55] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:55] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:56] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:56] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:56] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:56] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:57] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:40:58] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918059&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:41:05] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: profile:309607
+[2026-01-20 11:41:05] INFO     | MangaBuff.telegram_unified > 📊 Загрузка профиля 309607 для 7991034391
+[2026-01-20 11:41:07] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:41:07] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 309607
+[2026-01-20 11:41:08] INFO     | MangaBuff.google_sheets > Используем столбец B (индекс 1) для ссылок на странице баланса
+[2026-01-20 11:41:08] INFO     | MangaBuff.google_sheets > ✅ Найден баланс для 309607
+[2026-01-20 11:41:08] INFO     | MangaBuff.google_sheets > ✅ Полный профиль для 309607: основные + баланс
+[2026-01-20 11:41:10] INFO     | MangaBuff.telegram_unified > ✅ Профиль 309607 отправлен
+[2026-01-20 11:41:57] INFO     | MangaBuff.telegram_unified > 📩 Команда от amaterasu (7991034391): https://mangabuff.ru/users/265466
+[2026-01-20 11:41:57] INFO     | MangaBuff.telegram_unified > Запрос действия для ссылки: https://mangabuff.ru/users/265466
+[2026-01-20 11:41:58] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: link_view:https://mangabuff.ru/users/265466
+[2026-01-20 11:42:02] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:42:02] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 265466
+[2026-01-20 11:42:03] INFO     | MangaBuff.google_sheets > Используем столбец B (индекс 1) для ссылок на странице баланса
+[2026-01-20 11:42:03] INFO     | MangaBuff.google_sheets > ✅ Найден баланс для 265466
+[2026-01-20 11:42:03] INFO     | MangaBuff.google_sheets > ✅ Полный профиль для 265466: основные + баланс
+[2026-01-20 11:42:08] INFO     | MangaBuff.telegram_unified > ✅ Профиль 265466 показан
+[2026-01-20 11:43:00] INFO     | MangaBuff.telegram_unified > 📩 Команда от amaterasu (7991034391): https://mangabuff.ru/users/21857
+[2026-01-20 11:43:01] INFO     | MangaBuff.telegram_unified > Запрос действия для ссылки: https://mangabuff.ru/users/21857
+[2026-01-20 11:43:02] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: link_view:https://mangabuff.ru/users/21857
+[2026-01-20 11:43:04] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:43:04] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 21857
+[2026-01-20 11:43:13] INFO     | MangaBuff.google_sheets > Используем столбец B (индекс 1) для ссылок на странице баланса
+[2026-01-20 11:43:13] INFO     | MangaBuff.google_sheets > ✅ Найден баланс для 21857
+[2026-01-20 11:43:13] INFO     | MangaBuff.google_sheets > ✅ Полный профиль для 21857: основные + баланс
+[2026-01-20 11:43:14] INFO     | MangaBuff.telegram_unified > ✅ Профиль 21857 показан
+[2026-01-20 11:46:03] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 11:46:03] INFO     | MangaBuff >   📊 РЕЖИМ ОЖИДАНИЯ - Статистика
+[2026-01-20 11:46:03] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 11:46:50] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:50] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:51] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:51] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:51] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:51] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:52] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:52] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:53] WARNING  | MangaBuff.rate_limiter > Request failed (attempt 1): SOCKSHTTPSConnectionPool(host='mangabuff.ru', port=443): Max retries exceeded with url: /clubs/klub-taro-2/boost (Caused by NewConnectionError("SOCKSHTTPSConnection(host='mangabuff.ru', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:53] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:54] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:55] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:55] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:55] WARNING  | MangaBuff.rate_limiter > Request failed (attempt 2): SOCKSHTTPSConnectionPool(host='mangabuff.ru', port=443): Max retries exceeded with url: /clubs/klub-taro-2/boost (Caused by NewConnectionError("SOCKSHTTPSConnection(host='mangabuff.ru', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:55] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:55] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:55] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:56] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:56] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:57] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:57] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:57] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:57] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:57] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:46:57] ERROR    | MangaBuff.telegram_unified > Ошибка getUpdates: SOCKSHTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot8562662254:AAFqMiPjX4RU-aeA0IPW2OU4HIn1h4NEPIU/getUpdates?offset=174918064&timeout=30&allowed_updates=message&allowed_updates=callback_query (Caused by NewConnectionError("SOCKSHTTPSConnection(host='api.telegram.org', port=443): Failed to establish a new connection: SOCKS5 authentication failed"))
+[2026-01-20 11:50:22] INFO     | MangaBuff.telegram_unified > 📩 Команда от amaterasu (7991034391): /profile
+[2026-01-20 11:50:27] INFO     | MangaBuff.telegram_unified > Показан список профилей для 7991034391
+[2026-01-20 11:50:28] INFO     | MangaBuff.telegram_unified > 📩 Callback от 7991034391: profile:309607
+[2026-01-20 11:50:28] INFO     | MangaBuff.telegram_unified > 📊 Загрузка профиля 309607 для 7991034391
+[2026-01-20 11:50:30] INFO     | MangaBuff.google_sheets > Найден столбец 'ссылка бафф' (индекс 0)
+[2026-01-20 11:50:30] INFO     | MangaBuff.google_sheets > ✅ Найден профиль для 309607
+[2026-01-20 11:50:31] INFO     | MangaBuff.google_sheets > Используем столбец B (индекс 1) для ссылок на странице баланса
+[2026-01-20 11:50:31] INFO     | MangaBuff.google_sheets > ✅ Найден баланс для 309607
+[2026-01-20 11:50:31] INFO     | MangaBuff.google_sheets > ✅ Полный профиль для 309607: основные + баланс
+[2026-01-20 11:50:32] INFO     | MangaBuff.telegram_unified > ✅ Профиль 309607 отправлен
+[2026-01-20 11:51:10] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 11:51:10] INFO     | MangaBuff >   📊 РЕЖИМ ОЖИДАНИЯ - Статистика
+[2026-01-20 11:51:10] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 11:56:17] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 11:56:17] INFO     | MangaBuff >   📊 РЕЖИМ ОЖИДАНИЯ - Статистика
+[2026-01-20 11:56:17] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 12:01:27] INFO     | MangaBuff > ------------------------------------------------------------
+[2026-01-20 12:01:27] INFO     | MangaBuff >   📊 РЕЖИМ ОЖИДАНИЯ - Статистика
+[2026-01-20 12:01:27] INFO     | MangaBuff > ------------------------------------------------------------

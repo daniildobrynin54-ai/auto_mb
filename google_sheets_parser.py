@@ -1,32 +1,35 @@
-"""Парсер данных профилей из Google Sheets с автоматическим поиском столбца."""
+"""Парсер данных профилей из Google Sheets с данными из двух страниц."""
 
 import re
 import requests
 from typing import Optional, Dict, Any
-from bs4 import BeautifulSoup
 from logger import get_logger
 
 logger = get_logger("google_sheets")
 
 # URL Google Sheets (публичный доступ)
-SHEETS_URL = "https://docs.google.com/spreadsheets/d/1sYvrBU9BPhcoxTnNJfx8TOutxwFrSiRm2mw_8s6rdZM/gviz/tq?tqx=out:csv&gid=1142214254"
+# Страница с основными данными (Аркана, Звание, Последовательность)
+SHEETS_URL_MAIN = "https://docs.google.com/spreadsheets/d/1sYvrBU9BPhcoxTnNJfx8TOutxwFrSiRm2mw_8s6rdZM/gviz/tq?tqx=out:csv&gid=1142214254"
+
+# Страница с балансом (Остаток ОК, Вклад, Вклада до след последовательности)
+SHEETS_URL_BALANCE = "https://docs.google.com/spreadsheets/d/1sYvrBU9BPhcoxTnNJfx8TOutxwFrSiRm2mw_8s6rdZM/gviz/tq?tqx=out:csv&gid=846561775"
 
 
 class GoogleSheetsParser:
-    """Парсер профилей из Google Sheets."""
+    """Парсер профилей из Google Sheets с двух страниц."""
     
     def __init__(self, proxy_manager=None):
         self.proxies = None
         if proxy_manager and proxy_manager.is_enabled():
             self.proxies = proxy_manager.get_proxies()
     
-    def fetch_sheet_data(self) -> Optional[str]:
+    def fetch_sheet_data(self, url: str) -> Optional[str]:
         """Загружает CSV данные из Google Sheets."""
         try:
             logger.debug(f"Загрузка данных из Google Sheets...")
             
             response = requests.get(
-                SHEETS_URL,
+                url,
                 proxies=self.proxies,
                 timeout=15
             )
@@ -42,9 +45,35 @@ class GoogleSheetsParser:
             logger.error(f"Ошибка загрузки Google Sheets: {e}")
             return None
     
-    def parse_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
+    def _parse_csv_line(self, line: str) -> list:
+        """Парсит строку CSV с учетом кавычек."""
+        import csv
+        import io
+        
+        reader = csv.reader(io.StringIO(line))
+        return next(reader)
+    
+    def _clean_value(self, value: str) -> str:
+        """Очищает значение от HYPERLINK и кавычек."""
+        # Убираем HYPERLINK
+        if 'HYPERLINK' in value:
+            match = re.search(r';"([^"]+)"', value)
+            if match:
+                return match.group(1)
+        
+        # Убираем кавычки
+        return value.strip('"')
+    
+    def _extract_user_id_from_hyperlink(self, cell: str) -> Optional[str]:
+        """Извлекает user_id из HYPERLINK."""
+        match = re.search(r'/users/(\d+)', cell)
+        if match:
+            return match.group(1)
+        return None
+    
+    def parse_profile_main(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
-        Парсит профиль пользователя из таблицы.
+        Парсит основные данные профиля из первой страницы.
         
         Args:
             user_id: ID пользователя MangaBuff
@@ -52,10 +81,10 @@ class GoogleSheetsParser:
         Returns:
             Словарь с данными профиля или None
         """
-        csv_data = self.fetch_sheet_data()
+        csv_data = self.fetch_sheet_data(SHEETS_URL_MAIN)
         
         if not csv_data:
-            logger.warning("Не удалось загрузить данные из таблицы")
+            logger.warning("Не удалось загрузить основные данные из таблицы")
             return None
         
         logger.debug(f"Поиск профиля для user_id: {user_id}")
@@ -73,7 +102,7 @@ class GoogleSheetsParser:
         
         logger.debug(f"Заголовки: {headers}")
         
-        # 🔧 ИСПРАВЛЕНО: Автоматический поиск столбца со ссылками
+        # Автоматический поиск столбца со ссылками
         link_column_index = None
         
         # Сначала пробуем найти по известным названиям
@@ -106,67 +135,189 @@ class GoogleSheetsParser:
         
         # Ищем пользователя в строках
         for line in lines[1:]:
-            # Разделяем CSV с учетом кавычек
             values = self._parse_csv_line(line)
             
             if len(values) <= link_column_index:
                 continue
             
-            # В столбце со ссылками должна быть формула HYPERLINK:
-            # =HYPERLINK("https://mangabuff.ru/users/258280";"LTM I PoliS")
             link_cell = values[link_column_index]
             
             # Извлекаем user_id из HYPERLINK
-            match = re.search(r'/users/(\d+)', link_cell)
-            if not match:
+            found_user_id = self._extract_user_id_from_hyperlink(link_cell)
+            
+            if not found_user_id or found_user_id != user_id:
                 continue
             
-            found_user_id = match.group(1)
+            logger.info(f"✅ Найден профиль для {user_id}")
             
-            if found_user_id == user_id:
-                logger.info(f"✅ Найден профиль для {user_id}")
+            # Извлекаем nickname из HYPERLINK
+            name_match = re.search(r';"([^"]+)"', link_cell)
+            username = name_match.group(1) if name_match else f"User{user_id}"
+            
+            # Создаем словарь профиля
+            profile = {
+                'user_id': user_id,
+                'username': username
+            }
+            
+            # Добавляем остальные поля (кроме служебных)
+            skip_fields = {
+                'ссылка бафф',
+                'Ник',
+                'ник бафф',
+                'ID',
+                'id',
+                'тг ник',
+                'Telegram',
+                'telegram_username',
+                'Профиль',
+                'профиль'
+            }
+            
+            for i, header in enumerate(headers):
+                # Пропускаем служебные поля
+                if header in skip_fields:
+                    continue
                 
-                # Извлекаем название (после точки с запятой в HYPERLINK)
-                name_match = re.search(r';"([^"]+)"', link_cell)
-                username = name_match.group(1) if name_match else f"User{user_id}"
+                # Пропускаем столбец со ссылками
+                if i == link_column_index:
+                    continue
                 
-                # Создаем словарь профиля
-                profile = {
-                    'user_id': user_id,
-                    'username': username
-                }
-                
-                # Добавляем остальные поля
-                for i, header in enumerate(headers):
-                    if i < len(values):
-                        # Очищаем от HYPERLINK
-                        value = self._clean_value(values[i])
-                        profile[header] = value
-                
-                logger.debug(f"Профиль: {profile}")
-                return profile
+                if i < len(values):
+                    value = self._clean_value(values[i])
+                    
+                    # Пропускаем пустые значения и нули
+                    if not value or value == '0':
+                        continue
+                    
+                    # Пропускаем значения которые содержат User + ID
+                    if value.startswith('User') and user_id in value:
+                        continue
+                    
+                    profile[header] = value
+            
+            logger.debug(f"Основной профиль: {profile}")
+            return profile
         
-        logger.warning(f"Профиль для {user_id} не найден в таблице")
+        logger.warning(f"Профиль для {user_id} не найден в основной таблице")
         return None
     
-    def _parse_csv_line(self, line: str) -> list:
-        """Парсит строку CSV с учетом кавычек."""
-        import csv
-        import io
+    def parse_profile_balance(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Парсит данные баланса из второй страницы.
         
-        reader = csv.reader(io.StringIO(line))
-        return next(reader)
+        Args:
+            user_id: ID пользователя MangaBuff
+        
+        Returns:
+            Словарь с данными баланса или None
+        """
+        csv_data = self.fetch_sheet_data(SHEETS_URL_BALANCE)
+        
+        if not csv_data:
+            logger.warning("Не удалось загрузить данные баланса из таблицы")
+            return None
+        
+        logger.debug(f"Поиск баланса для user_id: {user_id}")
+        
+        lines = csv_data.strip().split('\n')
+        
+        if len(lines) < 2:
+            logger.warning("Таблица баланса пустая")
+            return None
+        
+        headers_line = lines[0]
+        headers = [h.strip('"') for h in headers_line.split(',')]
+        
+        logger.debug(f"Заголовки баланса: {headers}")
+        
+        # На странице баланса ссылки в столбце B (индекс 1)
+        link_column_index = 1
+        logger.info(f"Используем столбец B (индекс 1) для ссылок на странице баланса")
+        
+        # Ищем пользователя
+        for line in lines[1:]:
+            values = self._parse_csv_line(line)
+            
+            if len(values) <= link_column_index:
+                continue
+            
+            link_cell = values[link_column_index]
+            found_user_id = self._extract_user_id_from_hyperlink(link_cell)
+            
+            if not found_user_id or found_user_id != user_id:
+                continue
+            
+            logger.info(f"✅ Найден баланс для {user_id}")
+            
+            # Извлекаем нужные поля
+            balance_data = {}
+            
+            # Ищем столбцы по названиям (с разными вариантами написания)
+            balance_fields = {
+                'остаток ок': 'Баланс',
+                'остаток': 'Баланс',
+                'баланс': 'Баланс',
+                'вклад': 'Вклад',
+                'вклада до след последовательности': 'Вклада до след. последовательности',
+                'до след последовательности': 'Вклада до след. последовательности',
+                'до след.': 'Вклада до след. последовательности'
+            }
+            
+            for i, header in enumerate(headers):
+                # Пропускаем столбец со ссылками
+                if i == link_column_index:
+                    continue
+                
+                header_lower = header.lower().strip()
+                header_lower = header_lower.replace('.', '').replace(':', '').strip()
+                
+                # Ищем совпадение с нужными полями
+                for field_key, field_name in balance_fields.items():
+                    if field_key in header_lower:
+                        if i < len(values):
+                            value = self._clean_value(values[i])
+                            if value and value != '0':
+                                # Если поле еще не добавлено
+                                if field_name not in balance_data:
+                                    balance_data[field_name] = value
+                                    logger.debug(f"Найдено поле '{field_name}' в столбце '{header}': {value}")
+                                break
+            
+            logger.debug(f"Данные баланса: {balance_data}")
+            return balance_data
+        
+        logger.warning(f"Баланс для {user_id} не найден")
+        return None
     
-    def _clean_value(self, value: str) -> str:
-        """Очищает значение от HYPERLINK и кавычек."""
-        # Убираем HYPERLINK
-        if 'HYPERLINK' in value:
-            match = re.search(r';"([^"]+)"', value)
-            if match:
-                return match.group(1)
+    def parse_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Парсит полный профиль пользователя из обеих таблиц.
         
-        # Убираем кавычки
-        return value.strip('"')
+        Args:
+            user_id: ID пользователя MangaBuff
+        
+        Returns:
+            Объединенный словарь с данными профиля или None
+        """
+        # Получаем основные данные
+        main_data = self.parse_profile_main(user_id)
+        
+        if not main_data:
+            logger.warning(f"Основные данные не найдены для {user_id}")
+            return None
+        
+        # Получаем данные баланса
+        balance_data = self.parse_profile_balance(user_id)
+        
+        if balance_data:
+            # Объединяем данные
+            main_data.update(balance_data)
+            logger.info(f"✅ Полный профиль для {user_id}: основные + баланс")
+        else:
+            logger.warning(f"Данные баланса не найдены для {user_id}, используем только основные")
+        
+        return main_data
     
     def format_profile_message(self, profile: Dict[str, Any]) -> str:
         """
@@ -181,38 +332,97 @@ class GoogleSheetsParser:
         username = profile.get('username', 'Неизвестно')
         user_id = profile.get('user_id', '?')
         
-        # Формируем сообщение
+        # Формируем сообщение - ТОЛЬКО nickname в заголовке
         lines = [
-            f"<b>👤 Профиль: {username}</b>",
-            f"<code>ID: {user_id}</code>\n"
+            f"<b>👤 Профиль: {username}</b>\n"
         ]
         
-        # Добавляем остальные поля из таблицы
-        # Пропускаем служебные поля
+        # Поля которые нужно пропустить
         skip_fields = {
-            'user_id', 
-            'username', 
-            'Ник', 
-            'ссылка бафф',  # 🔧 ДОБАВЛЕНО: пропускаем столбец со ссылками
-            'ник бафф'      # Это уже отображено как username
+            'user_id',
+            'username',
+            'Ник',
+            'ссылка бафф',
+            'ник бафф',
+            'ID',
+            'id',
+            'тг ник',
+            'Telegram',
+            'telegram_username',
+            # Дополнительные поля которые могут показывать User309607
+            'Профиль',
+            'профиль'
         }
         
+        # Порядок отображения полей
+        field_order = [
+            'Аркана',
+            'аркана',
+            'Звание',
+            'звание',
+            'Последовательность',
+            'последовательность',
+            'посл.',
+            'Баланс',
+            'баланс',
+            'Вклад',
+            'вклад',
+            'Вклада до след. последовательности',
+            'вклада до след. последовательности'
+        ]
+        
+        # Сначала выводим поля в нужном порядке
+        added_fields = set()
+        for field_name in field_order:
+            # Проверяем и обычное имя и lowercase
+            for key in profile.keys():
+                if key.lower() == field_name.lower() and key not in skip_fields:
+                    if key not in added_fields:
+                        value = str(profile[key]).strip()
+                        if value and value != '0':
+                            # Используем красивое имя из field_order
+                            display_name = field_name
+                            # Если это короткое название - используем полное
+                            if field_name == 'посл.':
+                                display_name = 'Последовательность'
+                            elif field_name in ['аркана', 'звание', 'последовательность', 'баланс', 'вклад']:
+                                display_name = field_name.capitalize()
+                            
+                            lines.append(f"<b>{display_name}:</b> {value}")
+                            added_fields.add(key)
+        
+        # Затем выводим остальные поля
         for key, value in profile.items():
-            if key in skip_fields or not value:
+            if key in skip_fields or key in added_fields:
                 continue
             
             # Пропускаем поля которые содержат только служебную информацию
-            if key.lower().startswith('id ') or key.lower() == 'id':
+            key_lower = key.lower()
+            if key_lower.startswith('id ') or key_lower == 'id':
+                continue
+            
+            # Пропускаем ссылки
+            if key_lower in ['ссылка', 'link', 'url']:
+                continue
+            
+            # Форматируем значение
+            field_value = str(value).strip()
+            
+            # Пропускаем пустые значения и нули
+            if not field_value or field_value == '0':
+                continue
+            
+            # Пропускаем поля с User309607 и подобными
+            if field_value.startswith('User') and user_id in field_value:
+                logger.debug(f"Пропускаем поле '{key}' со значением '{field_value}'")
                 continue
             
             # Форматируем название поля
             field_name = key.strip()
-            field_value = str(value).strip()
             
-            if field_value and field_value != '0':  # Пропускаем пустые значения
-                lines.append(f"<b>{field_name}:</b> {field_value}")
+            lines.append(f"<b>{field_name}:</b> {field_value}")
         
-        # Добавляем ссылку на профиль
+        # Добавляем ссылку на профиль внизу
         lines.append(f"\n🔗 <a href='https://mangabuff.ru/users/{user_id}'>Перейти в профиль</a>")
         
         return "\n".join(lines)
