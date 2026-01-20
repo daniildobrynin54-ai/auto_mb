@@ -1,4 +1,4 @@
-"""Парсер данных профилей из Google Sheets с данными из двух страниц."""
+"""Парсер данных профилей из Google Sheets с вкладом из третьей страницы."""
 
 import re
 import requests
@@ -13,12 +13,15 @@ logger = get_logger("google_sheets")
 # Страница с основными данными (Аркана, Звание, Последовательность)
 SHEETS_URL_MAIN = "https://docs.google.com/spreadsheets/d/1sYvrBU9BPhcoxTnNJfx8TOutxwFrSiRm2mw_8s6rdZM/gviz/tq?tqx=out:csv&gid=1142214254"
 
-# Страница с балансом (Остаток ОК, Вклад, Вклада до след последовательности)
+# Страница с балансом (Остаток ОК)
 SHEETS_URL_BALANCE = "https://docs.google.com/spreadsheets/d/1sYvrBU9BPhcoxTnNJfx8TOutxwFrSiRm2mw_8s6rdZM/gviz/tq?tqx=out:csv&gid=846561775"
+
+# 🔧 НОВОЕ: Страница с вкладом (столбец Д - вклад)
+SHEETS_URL_CONTRIBUTION = "https://docs.google.com/spreadsheets/d/1sYvrBU9BPhcoxTnNJfx8TOutxwFrSiRm2mw_8s6rdZM/gviz/tq?tqx=out:csv&gid=1749360341"
 
 
 class GoogleSheetsParser:
-    """Парсер профилей из Google Sheets с двух страниц."""
+    """Парсер профилей из Google Sheets с трёх страниц."""
     
     def __init__(self, proxy_manager=None, session=None):
         # 🔧 ИСПРАВЛЕНО: НЕ используем прокси для Google Sheets
@@ -234,6 +237,9 @@ class GoogleSheetsParser:
                 'username': username
             }
             
+            # 🔧 НОВОЕ: Извлекаем инвентарь отдельно
+            inventory_value = None
+            
             # Добавляем остальные поля (кроме служебных)
             skip_fields = {
                 'ссылка бафф',
@@ -268,7 +274,16 @@ class GoogleSheetsParser:
                     if value.startswith('User') and user_id in value:
                         continue
                     
+                    # 🔧 НОВОЕ: Сохраняем инвентарь отдельно
+                    if header.lower() in ['0', 'инвентарь', 'inventory']:
+                        inventory_value = value
+                        continue
+                    
                     profile[header] = value
+            
+            # 🔧 НОВОЕ: Добавляем инвентарь в профиль
+            if inventory_value:
+                profile['Инвентарь'] = inventory_value
             
             logger.debug(f"Основной профиль: {profile}")
             return profile
@@ -331,11 +346,7 @@ class GoogleSheetsParser:
             balance_fields = {
                 'остаток ок': 'Баланс',
                 'остаток': 'Баланс',
-                'баланс': 'Баланс',
-                'вклад': 'Вклад',
-                'вклада до след последовательности': 'Вклада до след. последовательности',
-                'до след последовательности': 'Вклада до след. последовательности',
-                'до след.': 'Вклада до след. последовательности'
+                'баланс': 'Баланс'
             }
             
             for i, header in enumerate(headers):
@@ -368,9 +379,78 @@ class GoogleSheetsParser:
         logger.warning(f"Баланс для {user_id} не найден")
         return None
     
+    def parse_profile_contribution(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """
+        🔧 НОВОЕ: Парсит вклад из третьей страницы.
+        
+        Args:
+            user_id: ID пользователя MangaBuff
+        
+        Returns:
+            Словарь с вкладом или None
+        """
+        csv_data = self.fetch_sheet_data(SHEETS_URL_CONTRIBUTION)
+        
+        if not csv_data:
+            logger.warning("Не удалось загрузить данные вклада из таблицы")
+            return None
+        
+        logger.debug(f"Поиск вклада для user_id: {user_id}")
+        
+        lines = csv_data.strip().split('\n')
+        
+        if len(lines) < 2:
+            logger.warning("Таблица вклада пустая")
+            return None
+        
+        headers_line = lines[0]
+        headers = [h.strip('"') for h in headers_line.split(',')]
+        
+        logger.debug(f"Заголовки вклада: {headers}")
+        
+        # 🔧 ИСПРАВЛЕНО: Ссылки в столбце F (индекс 5)
+        # Столбцы: A B C D E F
+        # Индексы:  0 1 2 3 4 5
+        link_column_index = 5
+        logger.info(f"Используем столбец F (индекс 5) для ссылок на странице вклада")
+        
+        # 🔧 ИСПРАВЛЕНО: Вклад в столбце D (индекс 3)
+        contribution_column_index = 3
+        logger.info(f"Вклад в столбце D (индекс 3)")
+        
+        # Ищем пользователя
+        for line in lines[1:]:
+            values = self._parse_csv_line(line)
+            
+            if len(values) <= link_column_index:
+                continue
+            
+            link_cell = values[link_column_index]
+            found_user_id = self._extract_user_id_from_hyperlink(link_cell)
+            
+            if not found_user_id or found_user_id != user_id:
+                continue
+            
+            logger.info(f"✅ Найден вклад для {user_id}")
+            
+            contribution_data = {}
+            
+            # Извлекаем вклад из столбца D
+            if contribution_column_index < len(values):
+                contribution_value = self._clean_value(values[contribution_column_index])
+                
+                if contribution_value and contribution_value != '0':
+                    contribution_data['Вклад'] = contribution_value
+                    logger.debug(f"Найден вклад: {contribution_value}")
+            
+            return contribution_data
+        
+        logger.warning(f"Вклад для {user_id} не найден")
+        return None
+    
     def parse_profile(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
-        Парсит полный профиль пользователя из обеих таблиц.
+        🔧 ОБНОВЛЕНО: Парсит полный профиль пользователя из ТРЁХ таблиц.
         
         Args:
             user_id: ID пользователя MangaBuff
@@ -389,17 +469,25 @@ class GoogleSheetsParser:
         balance_data = self.parse_profile_balance(user_id)
         
         if balance_data:
-            # Объединяем данные
             main_data.update(balance_data)
-            logger.info(f"✅ Полный профиль для {user_id}: основные + баланс")
+            logger.info(f"✅ Добавлен баланс для {user_id}")
         else:
-            logger.warning(f"Данные баланса не найдены для {user_id}, используем только основные")
+            logger.warning(f"Данные баланса не найдены для {user_id}")
+        
+        # 🔧 НОВОЕ: Получаем данные вклада
+        contribution_data = self.parse_profile_contribution(user_id)
+        
+        if contribution_data:
+            main_data.update(contribution_data)
+            logger.info(f"✅ Добавлен вклад для {user_id}")
+        else:
+            logger.warning(f"Данные вклада не найдены для {user_id}")
         
         return main_data
     
     def format_profile_message(self, profile: Dict[str, Any]) -> str:
         """
-        Форматирует профиль в красивое сообщение для Telegram.
+        🔧 ОБНОВЛЕНО: Форматирует профиль с инвентарём отдельной строкой.
         
         Args:
             profile: Словарь с данными профиля
@@ -410,22 +498,13 @@ class GoogleSheetsParser:
         username = profile.get('username', 'Неизвестно')
         user_id = profile.get('user_id', '?')
         
-        # 🔧 ИСПРАВЛЕНО: Извлекаем инвентарь для переноса в скобки
-        inventory_value = None
-        for key in list(profile.keys()):
-            if key.lower() in ['0', 'инвентарь', 'inventory']:
-                inventory_value = profile.pop(key)
-                break
+        # 🔧 ИСПРАВЛЕНО: Инвентарь теперь отдельная строка
+        inventory_value = profile.get('Инвентарь')
         
-        # 🔧 ИСПРАВЛЕНО: Формируем заголовок с инвентарем в скобках
-        if inventory_value:
-            lines = [
-                f"<b>👤 Профиль: {username} ({inventory_value})</b>\n"
-            ]
-        else:
-            lines = [
-                f"<b>👤 Профиль: {username}</b>\n"
-            ]
+        # 🔧 ИСПРАВЛЕНО: Заголовок БЕЗ инвентаря
+        lines = [
+            f"<b>👤 Профиль: {username}</b>\n"
+        ]
         
         # Поля которые нужно пропустить
         skip_fields = {
@@ -441,6 +520,7 @@ class GoogleSheetsParser:
             'telegram_username',
             'Профиль',
             'профиль',
+            'Инвентарь',  # 🔧 НОВОЕ: Пропускаем здесь, добавим отдельно
             '0',
             'инвентарь',
             'inventory'
@@ -457,10 +537,8 @@ class GoogleSheetsParser:
             'посл.',
             'Баланс',
             'баланс',
-            'Вклад',
-            'вклад',
-            'Вклада до след. последовательности',
-            'вклада до след. последовательности'
+            'Вклад',  # 🔧 НОВОЕ: Вклад в общем порядке
+            'вклад'
         ]
         
         # Сначала выводим поля в нужном порядке
@@ -485,6 +563,10 @@ class GoogleSheetsParser:
                             
                             lines.append(f"<b>{display_name}:</b> {value}")
                             added_fields.add(key)
+        
+        # 🔧 НОВОЕ: Добавляем инвентарь ОТДЕЛЬНОЙ строкой
+        if inventory_value:
+            lines.append(f"<b>Инвентарь:</b> {inventory_value}")
         
         # Затем выводим остальные поля
         for key, value in profile.items():
