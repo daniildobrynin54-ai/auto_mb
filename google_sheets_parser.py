@@ -3,6 +3,8 @@
 import re
 import requests
 from typing import Optional, Dict, Any
+from bs4 import BeautifulSoup
+from config import BASE_URL, REQUEST_TIMEOUT
 from logger import get_logger
 
 logger = get_logger("google_sheets")
@@ -18,10 +20,17 @@ SHEETS_URL_BALANCE = "https://docs.google.com/spreadsheets/d/1sYvrBU9BPhcoxTnNJf
 class GoogleSheetsParser:
     """Парсер профилей из Google Sheets с двух страниц."""
     
-    def __init__(self, proxy_manager=None):
+    def __init__(self, proxy_manager=None, session=None):
         # 🔧 ИСПРАВЛЕНО: НЕ используем прокси для Google Sheets
         self.proxies = None
+        # 🔧 НОВОЕ: Сохраняем session для парсинга nicknames
+        self.session = session
         logger.info("Google Sheets parser работает БЕЗ прокси (прямое подключение)")
+    
+    def set_session(self, session) -> None:
+        """🔧 НОВОЕ: Устанавливает session для парсинга nicknames."""
+        self.session = session
+        logger.info("Session установлена в Google Sheets parser")
     
     def fetch_sheet_data(self, url: str) -> Optional[str]:
         """Загружает CSV данные из Google Sheets."""
@@ -70,6 +79,66 @@ class GoogleSheetsParser:
         if match:
             return match.group(1)
         return None
+    
+    def _parse_nickname_from_mangabuff(self, user_id: str) -> Optional[str]:
+        """
+        🔧 НОВОЕ: Парсит реальный nickname с профиля MangaBuff.
+        
+        Args:
+            user_id: ID пользователя
+        
+        Returns:
+            Nickname или None
+        """
+        if not self.session:
+            logger.warning("Session не установлена, невозможно парсить nickname")
+            return None
+        
+        url = f"{BASE_URL}/users/{user_id}"
+        
+        try:
+            logger.debug(f"Парсинг nickname для {user_id}...")
+            response = self.session.get(url, timeout=REQUEST_TIMEOUT)
+            
+            if response.status_code != 200:
+                logger.warning(f"Не удалось загрузить профиль {user_id}: {response.status_code}")
+                return None
+            
+            soup = BeautifulSoup(response.text, "html.parser")
+            
+            # Ищем никнейм
+            selectors = [
+                '.profile__name',
+                '.profile-name',
+                '[data-name]',
+                'div.profile h1',
+                'div.profile h2',
+                '.user-name',
+                '.username'
+            ]
+            
+            for selector in selectors:
+                element = soup.select_one(selector)
+                if element:
+                    # Пробуем атрибут data-name
+                    if element.has_attr('data-name'):
+                        nickname = element.get('data-name', '').strip()
+                        if nickname:
+                            logger.debug(f"Найден nickname для {user_id}: {nickname}")
+                            return nickname
+                    
+                    # Пробуем текст
+                    nickname = element.get_text(strip=True)
+                    if nickname:
+                        logger.debug(f"Найден nickname для {user_id}: {nickname}")
+                        return nickname
+            
+            logger.warning(f"Nickname не найден для {user_id}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Ошибка получения nickname для {user_id}: {e}")
+            return None
     
     def parse_profile_main(self, user_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -150,9 +219,14 @@ class GoogleSheetsParser:
             
             logger.info(f"✅ Найден профиль для {user_id}")
             
-            # Извлекаем nickname из HYPERLINK
-            name_match = re.search(r';"([^"]+)"', link_cell)
-            username = name_match.group(1) if name_match else f"User{user_id}"
+            # 🔧 ИСПРАВЛЕНО: Парсим РЕАЛЬНЫЙ nickname с MangaBuff
+            username = self._parse_nickname_from_mangabuff(user_id)
+            
+            # Если не удалось распарсить - используем из таблицы как fallback
+            if not username:
+                name_match = re.search(r';"([^"]+)"', link_cell)
+                username = name_match.group(1) if name_match else f"User{user_id}"
+                logger.warning(f"Используем nickname из таблицы: {username}")
             
             # Создаем словарь профиля
             profile = {
@@ -280,7 +354,11 @@ class GoogleSheetsParser:
                             if value and value != '0':
                                 # Если поле еще не добавлено
                                 if field_name not in balance_data:
-                                    balance_data[field_name] = value
+                                    # 🔧 ИСПРАВЛЕНО: Добавляем "ОК" к балансу
+                                    if field_name == 'Баланс':
+                                        balance_data[field_name] = f"{value} ОК"
+                                    else:
+                                        balance_data[field_name] = value
                                     logger.debug(f"Найдено поле '{field_name}' в столбце '{header}': {value}")
                                 break
             
@@ -332,10 +410,22 @@ class GoogleSheetsParser:
         username = profile.get('username', 'Неизвестно')
         user_id = profile.get('user_id', '?')
         
-        # Формируем сообщение - ТОЛЬКО nickname в заголовке
-        lines = [
-            f"<b>👤 Профиль: {username}</b>\n"
-        ]
+        # 🔧 ИСПРАВЛЕНО: Извлекаем инвентарь для переноса в скобки
+        inventory_value = None
+        for key in list(profile.keys()):
+            if key.lower() in ['0', 'инвентарь', 'inventory']:
+                inventory_value = profile.pop(key)
+                break
+        
+        # 🔧 ИСПРАВЛЕНО: Формируем заголовок с инвентарем в скобках
+        if inventory_value:
+            lines = [
+                f"<b>👤 Профиль: {username} ({inventory_value})</b>\n"
+            ]
+        else:
+            lines = [
+                f"<b>👤 Профиль: {username}</b>\n"
+            ]
         
         # Поля которые нужно пропустить
         skip_fields = {
@@ -349,9 +439,11 @@ class GoogleSheetsParser:
             'тг ник',
             'Telegram',
             'telegram_username',
-            # Дополнительные поля которые могут показывать User309607
             'Профиль',
-            'профиль'
+            'профиль',
+            '0',
+            'инвентарь',
+            'inventory'
         }
         
         # Порядок отображения полей
@@ -388,6 +480,9 @@ class GoogleSheetsParser:
                             elif field_name in ['аркана', 'звание', 'последовательность', 'баланс', 'вклад']:
                                 display_name = field_name.capitalize()
                             
+                            # 🔧 ИСПРАВЛЕНО: Убираем ": ?" из значений
+                            value = value.replace(': ?', '').strip()
+                            
                             lines.append(f"<b>{display_name}:</b> {value}")
                             added_fields.add(key)
         
@@ -417,6 +512,9 @@ class GoogleSheetsParser:
                 logger.debug(f"Пропускаем поле '{key}' со значением '{field_value}'")
                 continue
             
+            # 🔧 ИСПРАВЛЕНО: Убираем ": ?" из значений
+            field_value = field_value.replace(': ?', '').strip()
+            
             # Форматируем название поля
             field_name = key.strip()
             
@@ -432,12 +530,15 @@ class GoogleSheetsParser:
 _sheets_parser: Optional[GoogleSheetsParser] = None
 
 
-def get_sheets_parser(proxy_manager=None) -> GoogleSheetsParser:
+def get_sheets_parser(proxy_manager=None, session=None) -> GoogleSheetsParser:
     """Возвращает глобальный экземпляр парсера."""
     global _sheets_parser
     
     if _sheets_parser is None:
-        # 🔧 НЕ передаем proxy_manager
-        _sheets_parser = GoogleSheetsParser(None)
+        # 🔧 НЕ передаем proxy_manager, но передаем session
+        _sheets_parser = GoogleSheetsParser(None, session)
+    elif session and not _sheets_parser.session:
+        # Если парсер уже создан, но session не была установлена
+        _sheets_parser.set_session(session)
     
     return _sheets_parser
